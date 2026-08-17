@@ -1,0 +1,4 @@
+interface:
+  display_name: "Systems Programming Tutor"
+  short_description: "Teach systems concepts through C, Rust, and Zig"
+  default_prompt: "Use $systems-programming-tutor to continue my next systems programming exercise."
