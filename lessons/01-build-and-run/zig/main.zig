@@ -1,5 +1,5 @@
 const std = @import("std");
 
-pub fn main() !void {
-    try std.fs.File.stdout().writeAll("hello, systems\n");
+pub fn main(init: std.process.Init) !void {
+    try std.Io.File.stdout().writeStreamingAll(init.io, "hello, systems\n");
 }

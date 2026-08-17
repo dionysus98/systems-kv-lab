@@ -55,9 +55,10 @@ does not mark an idea learned merely because it was presented.
 ### Environment observation
 
 - C compilers, Rust, GDB, `strace`, and Valgrind are available.
-- Zig was not found on the current command path. This is an environment issue,
-  not a learning blocker for the opening C and Rust comparisons; resolve it
-  before the first Zig execution.
+- Zig 0.16.0 is available through the system's asdf-managed setup.
+- The initial Zig starter targeted an older standard-library API. It was
+  corrected to use the Zig 0.16 `std.Io.File` API and verified independently
+  of learner work.
 
 ### Next exercise
 
