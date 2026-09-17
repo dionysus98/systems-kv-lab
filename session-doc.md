@@ -115,6 +115,38 @@ does not mark an idea learned merely because it was presented.
   and the `rustc` build command, then ask the learner to predict the visible
   output, whether the source changes, and what artifacts compilation creates.
 
+## Session 2 — Rust build checkpoint (2026-09-17)
+
+### Teaching evidence
+
+- The learner predicted `hello, systems`, unchanged source, and a separate
+  executable named `hello-rust`, connecting this to the C experiment.
+- The assistant clarified that `println!` adds a trailing newline, then built
+  the existing Rust source with `rustc` without diagnostics.
+- Execution printed the predicted text followed by a newline and returned
+  exit status 0. Matching SHA-256 hashes before and after compilation confirmed
+  the source was unchanged; inspection identified the output as an ELF executable.
+- The `file` utility mislabeled the tiny Rust source as C source while correctly
+  identifying it as ASCII text. Its language guess is not authoritative.
+- Standard output was explained as a byte stream; the learner has not yet
+  demonstrated that refinement in their own explanation.
+
+### Redirection checkpoint
+
+- The learner correctly predicted that redirecting standard output would
+  leave the terminal empty and put `hello, systems` in `greeting.txt`.
+- Running `./build/hello-rust > build/greeting.txt` produced no terminal output
+  and exited successfully. Reading the file confirmed the text and a trailing
+  newline (byte `0a`). This demonstrates the distinction between standard
+  output and the terminal.
+- The learner explicitly authorized committing and pushing the journal after
+  automatic approval review initially rejected publishing the checkpoint.
+
+### Next exercise
+
+- Introduce the existing Zig starter a little at a time, explaining its explicit
+  I/O context and error handling before asking for a build/run prediction.
+
 ## Retrospective prompts
 
 - What can I now explain without relying on language-specific terminology?
