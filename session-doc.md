@@ -147,6 +147,25 @@ does not mark an idea learned merely because it was presented.
 - Introduce the existing Zig starter a little at a time, explaining its explicit
   I/O context and error handling before asking for a build/run prediction.
 
+### Zig checkpoint
+
+- The learner correctly predicted `hello, systems` followed by a newline and
+  explained that `try` returns an error if the operation fails.
+- The initial build could not write Zig's default global cache in the restricted
+  environment. Using `--global-cache-dir /tmp/systems-kv-lab-zig-cache` allowed
+  the same source to compile successfully without diagnostics.
+- Execution printed the predicted text and newline and returned exit status 0.
+  Matching source hashes confirmed compilation left the source unchanged;
+  `file` identified `build/hello-zig` as an ELF executable.
+- Error propagation was explained and correctly restated, but no failing write
+  has been tested. Memory, ownership, and cleanup remain untested.
+
+### Next exercise
+
+- Close lesson 1 with a cross-language comparison and ask whether editing a
+  source file alone changes an already-built executable. Use the prediction
+  to guide the learner's first source edit and rebuild.
+
 ## Retrospective prompts
 
 - What can I now explain without relying on language-specific terminology?
