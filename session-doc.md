@@ -181,6 +181,25 @@ does not mark an idea learned merely because it was presented.
   which observed facts came from the source, compiler, executable, shell, and
   operating system before beginning lesson 2.
 
+### Lesson 1 retrospective
+
+- The learner explained the pipeline as source code being compiled by the
+  language-specific compiler into a native executable, which the operating
+  system runs as a process.
+- The learner described the shell as the interface that launched `hello-c` and
+  connected its output to the terminal. Refine this by separating the shell
+  from the terminal: the shell parsed `./build/hello-c`, asked the OS to start
+  the executable, and waited for its exit; the terminal displayed the bytes
+  written to standard output. Redirection showed that the output stream need
+  not be connected to the terminal.
+- The learner has completed the observable objectives for lesson 1. The next
+  pending topic is integers, bytes, addresses, and function calls.
+
+### Next exercise
+
+- Create a tiny matched C, Rust, and Zig experiment that prints an integer and
+  inspects its bytes and address, asking for predictions before execution.
+
 ## Retrospective prompts
 
 - What can I now explain without relying on language-specific terminology?
