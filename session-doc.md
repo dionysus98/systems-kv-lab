@@ -166,6 +166,21 @@ does not mark an idea learned merely because it was presented.
   source file alone changes an already-built executable. Use the prediction
   to guide the learner's first source edit and rebuild.
 
+### Source-versus-executable checkpoint
+
+- The learner correctly predicted that editing `c/main.c` without compiling
+  would leave the existing executable printing the old greeting.
+- Changing the source to `hello, rebuilt systems` and running the old binary
+  still printed `hello, systems`. Rebuilding with warnings enabled then made
+  the executable print the new greeting. This directly demonstrated that the
+  executable is a separate artifact produced at compile time.
+
+### Next exercise
+
+- Ask the learner to summarize the complete lesson 1 build pipeline and identify
+  which observed facts came from the source, compiler, executable, shell, and
+  operating system before beginning lesson 2.
+
 ## Retrospective prompts
 
 - What can I now explain without relying on language-specific terminology?
