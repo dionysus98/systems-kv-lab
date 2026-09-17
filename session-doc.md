@@ -67,6 +67,54 @@ does not mark an idea learned merely because it was presented.
 - Explain the distinction between source code, a compiler, and an executable
   in the learner's own words.
 
+## Session 1 — Lesson 1 predictions (2026-08-23)
+
+### Teaching evidence
+
+- The learner predicted that compilation leaves the source unchanged and
+  produces a binary rather than plain readable text.
+- The learner's first answer conflated source files with the native binaries
+  produced from them. The next experiment will distinguish the input source
+  from the separate compiler output.
+- When asked for evidence distinguishing source and executable, the learner
+  restated their conceptual roles rather than proposing an observable test.
+  The C checkpoint will compare file type, permissions, and visible contents.
+
+### Next exercise
+
+- Explain the small C program and build command, then ask the learner to
+  predict the program output before compiling or running it.
+
+### C checkpoint evidence
+
+- The learner correctly predicted the exact visible output, including its
+  trailing newline, and identified `./` as relative to the current directory.
+- Building the unchanged source with warnings enabled produced no diagnostics.
+- Running the executable printed `hello, systems` and returned exit status 0.
+- Inspection identified `c/main.c` as 85 bytes of ASCII text without execute
+  permission and `build/hello-c` as a 15,960-byte executable ELF file with
+  execute permission. Their first 16 bytes also differed visibly.
+
+### Next exercise
+
+- Have the learner use the observed C evidence to explain source, compiler,
+  executable, standard output, and exit status before moving to Rust.
+
+### C checkpoint explanation
+
+- The learner correctly distinguished `main.c` as C source text, `cc` as the
+  program that compiles it, and `build/hello-c` as the resulting executable.
+- The learner correctly explained exit status 0 as successful completion.
+- The learner described standard output as the CLI. Refine this to a byte
+  stream that happened to be connected to the terminal for this run, but can
+  also be redirected to a file or piped to another program.
+
+### Next exercise
+
+- Begin the Rust checkpoint by explaining only the syntax in `rust/main.rs`
+  and the `rustc` build command, then ask the learner to predict the visible
+  output, whether the source changes, and what artifacts compilation creates.
+
 ## Retrospective prompts
 
 - What can I now explain without relying on language-specific terminology?
