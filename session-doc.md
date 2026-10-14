@@ -282,6 +282,16 @@ does not mark an idea learned merely because it was presented.
   or maintaining a second copy of current progress.
 - The next learning checkpoint remains the learner-written fixed-capacity store.
 
+### First store exercise prepared
+
+- The learner authorized pushing the saved checkpoints and continuing.
+- Prepared `lessons/03-fixed-store/README.md` with the C store specification,
+  a focused syntax reference, build command, and observable acceptance checks.
+  The implementation file contains only a task comment; no solution is supplied.
+- The immediate task is to implement a four-entry integer store with set/get,
+  replacement, missing-key behavior, and capacity errors. The learner has not
+  attempted this checkpoint yet. Rust and Zig comparisons follow working C.
+
 ## Retrospective prompts
 
 - What can I now explain without relying on language-specific terminology?
