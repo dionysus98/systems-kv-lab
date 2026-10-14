@@ -7,6 +7,9 @@ does not mark an idea learned merely because it was presented.
 
 - The learner is an experienced programmer but a complete beginner in C,
   Rust, Zig, and systems programming.
+- Their primary languages are Clojure, JavaScript, and Python. Assume everyday
+  programming fluency; focus questions on unfamiliar systems concepts and use
+  those languages as reference points without assuming knowledge of their internals.
 - Explain new syntax and systems terminology when first introduced.
 - Keep exercises small enough that language syntax does not obscure the
   machine-level concept.
@@ -199,6 +202,19 @@ does not mark an idea learned merely because it was presented.
 
 - Create a tiny matched C, Rust, and Zig experiment that prints an integer and
   inspects its bytes and address, asking for predictions before execution.
+
+## Session 3 — Teaching calibration (2026-10-14)
+
+- The learner emphasized their existing programming experience in Clojure,
+  JavaScript, and Python and requested durable context for question design.
+- The tutor skill already distinguished programming experience from systems
+  experience, but omitted their languages and concrete guidance for questions.
+  Added both to the skill and learner context.
+- The assistant's lesson 2 introduction spent unnecessary attention on basic
+  variable declaration. Future explanations should focus on unfamiliar syntax
+  and systems behavior, without reteaching everyday programming concepts.
+- No lesson 2 prediction or experiment has been completed. Next: introduce the
+  C integer storage experiment, then compare the same behavior in Rust and Zig.
 
 ## Retrospective prompts
 
