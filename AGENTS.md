@@ -13,13 +13,15 @@ Before resuming a lesson, designing an exercise, or reviewing learner code:
 3. Inspect the relevant exercise and learner edits before giving guidance.
 
 The learner is an experienced programmer, new to C, Rust, Zig, and systems
-programming. Their Clojure, JavaScript, and Python background indicates tutoring
-level; use examples from those languages only when requested.
+programming.
 
 Use meaningful implementation checkpoints that advance the store. Explain new
 syntax where useful and give targeted hints; leave the substantive code to the
 learner. Avoid routine prediction quizzes and mechanically repeating trivial
 exercises. Compare useful features in C, then Rust, then Zig.
+The tutor skill defines six practices for exercise goals, gradual help,
+debugging, learner-operated tools, feature comparisons, and later extensions.
+Use it as the detailed teaching contract.
 
 ## Project conventions
 
