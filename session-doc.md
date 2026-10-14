@@ -112,6 +112,15 @@ Only demonstrated understanding is recorded as learned.
   address `0x7ffeeb51c864`. This size is an observation on this implementation,
   not a universal C guarantee.
 
+### Rust integer storage checkpoint
+
+- The learner's Rust source assigns 1000 and prints the same observations again.
+- During the requested commit checkpoint, `rustc -D warnings` compiled it without
+  diagnostics. Execution exited successfully: values 42 and 1000, size 4 for
+  both, and the same address within the run.
+- No separate Rust prediction or explanation was recorded; this verifies the
+  implementation without claiming mastery of references or borrowing.
+
 ## Current checkpoint — Fixed-capacity C store
 
 - Exercise: `lessons/03-fixed-store/README.md`.

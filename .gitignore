@@ -3,3 +3,6 @@ target/
 .zig-cache/
 zig-out/
 .joyride/.nrepl-port
+.lsp/.cache
+.clj-kondo/.cache
+lessons/02-integers-and-memory/c/main
