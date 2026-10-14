@@ -261,6 +261,17 @@ does not mark an idea learned merely because it was presented.
   at feature level. This replaces the pending trivial Rust assignment exercise;
   no implementation or learning outcome is claimed yet.
 
+### Preserve hands-on syntax practice
+
+- The learner clarified that faster pacing must preserve practice writing new
+  language syntax. They do not want the assistant to complete the implementation
+  under the label of supplying syntax or boilerplate.
+- Refined the skill: give behavioral specifications, targeted explanations,
+  small examples, and hints where useful; leave implementation to the learner.
+  Supply boilerplate only when it does not remove useful learning work.
+- The first fixed-capacity store remains the next checkpoint; no solution has
+  been supplied and no implementation outcome is recorded.
+
 ## Retrospective prompts
 
 - What can I now explain without relying on language-specific terminology?

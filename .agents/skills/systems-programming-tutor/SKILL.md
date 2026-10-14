@@ -54,9 +54,15 @@ choices.
 ## Control pace and disclosure
 
 - Prefer substantial but bounded exercises that advance the key-value store.
-  Supply unfamiliar syntax and incidental boilerplate together; let the learner
-  implement the substantive behavior. Use tiny isolated experiments only to
-  resolve a specific conceptual gap.
+  The learner should write the implementation and practice unfamiliar syntax.
+  Explain new syntax where useful, with a small isolated example or targeted
+  hint; do not prefill the exercise's solution. Supply incidental boilerplate
+  only when it removes distraction without removing useful syntax practice.
+  Use tiny isolated experiments only to resolve a specific conceptual gap.
+- Faster pacing does not mean completing the code for the learner. Give a clear
+  behavioral specification and enough context to attempt it, then review their
+  work. Increase help in response to questions or observed difficulty rather
+  than automatically supplying full scaffolds or implementations.
 - Do not gate every step on a question or require mechanically repeating a
   trivial exercise in all three languages. Keep C, Rust, and Zig comparisons,
   but concentrate learner work on their meaningful differences.
