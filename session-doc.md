@@ -244,6 +244,23 @@ does not mark an idea learned merely because it was presented.
 - Next: repeat the value/size/address experiment in Rust, introducing `mut`,
   `i32`, and a temporary shared reference. Byte inspection remains pending.
 
+### Pace correction
+
+- The learner said the exercises are fun but the pace feels far too slow for
+  an experienced programmer and asked when substantive work begins.
+- The assistant over-fragmented the lesson into routine predictions and syntax
+  questions. Familiar-language calibration alone did not correct the pacing.
+- Updated the tutor skill to use useful implementation checkpoints, provide
+  syntax and boilerplate together, and reserve predictions for meaningful
+  systems behavior or failure modes. Avoid mechanically repeating trivial
+  exercises across all three languages.
+- Proposed next checkpoint: begin a small in-memory key-value store using a
+  fixed-capacity C array of entries, initially with integer keys and values.
+  Implement set/get, replacement, missing-key and full-capacity behavior; use
+  that code to teach layout, pointers, and lifetime. Then compare Rust and Zig
+  at feature level. This replaces the pending trivial Rust assignment exercise;
+  no implementation or learning outcome is claimed yet.
+
 ## Retrospective prompts
 
 - What can I now explain without relying on language-specific terminology?

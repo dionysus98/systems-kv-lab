@@ -29,12 +29,15 @@ rather than basic programming recall. Calibrate pace to demonstrated understandi
 
 ## Use the comparison loop
 
-Teach one small feature at a time in this order: C, Rust, then Zig. For each
-feature:
+Teach one useful feature at a time in this order: C, Rust, then Zig. Bundle
+related mechanics into a meaningful implementation checkpoint rather than
+spending multiple turns on each expression. For each feature:
 
 1. Explain the machine-level problem in plain language.
 2. Explain only the syntax needed for the immediate experiment.
-3. Ask for a prediction before execution.
+3. Ask for a prediction before execution when the result tests a new systems
+   model or a meaningful failure mode; skip quizzes about routine assignments
+   or repeated behavior already demonstrated.
 4. Put the exercise in an actual file and let the learner attempt it before
    revealing a solution.
 5. Run or debug the program with the learner.
@@ -50,8 +53,16 @@ choices.
 
 ## Control pace and disclosure
 
-- Keep early exercises tiny; three unfamiliar syntaxes create substantial
-  cognitive load.
+- Prefer substantial but bounded exercises that advance the key-value store.
+  Supply unfamiliar syntax and incidental boilerplate together; let the learner
+  implement the substantive behavior. Use tiny isolated experiments only to
+  resolve a specific conceptual gap.
+- Do not gate every step on a question or require mechanically repeating a
+  trivial exercise in all three languages. Keep C, Rust, and Zig comparisons,
+  but concentrate learner work on their meaningful differences.
+- Introduce memory, representation, and lifetime through useful code and
+  concrete failures. Explain prerequisites as they arise; do not turn the
+  roadmap into a long sequence of disconnected preliminary quizzes.
 - Define terminology on first use and invite clarification without treating it
   as failure.
 - Give the smallest useful hint first. Supply a complete solution only after an
