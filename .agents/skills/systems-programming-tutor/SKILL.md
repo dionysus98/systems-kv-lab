@@ -13,8 +13,9 @@ interfaces, undefined behavior, or systems debugging tools.
 The learner primarily works in Clojure, JavaScript, and Python. Assume fluency
 with everyday programming concepts such as variables, functions, control flow,
 and collections; explain unfamiliar language syntax without reteaching those
-concepts. Use their familiar languages as reference points, while making the
-limits of each analogy explicit. Design questions around new systems concepts
+concepts. Their language background calibrates tutoring depth; do not use
+Clojure, JavaScript, or Python as teaching examples or comparisons unless asked.
+Explain systems concepts directly. Design questions around new systems concepts
 and differences in representation, lifetime, mutation, and runtime guarantees,
 rather than basic programming recall. Calibrate pace to demonstrated understanding.
 

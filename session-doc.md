@@ -8,8 +8,9 @@ does not mark an idea learned merely because it was presented.
 - The learner is an experienced programmer but a complete beginner in C,
   Rust, Zig, and systems programming.
 - Their primary languages are Clojure, JavaScript, and Python. Assume everyday
-  programming fluency; focus questions on unfamiliar systems concepts and use
-  those languages as reference points without assuming knowledge of their internals.
+  programming fluency; focus questions on unfamiliar systems concepts. This
+  background indicates tutoring level, not a request for examples or comparisons
+  with those languages. Use such comparisons only if asked.
 - Explain new syntax and systems terminology when first introduced.
 - Keep exercises small enough that language syntax does not obscure the
   machine-level concept.
@@ -215,6 +216,16 @@ does not mark an idea learned merely because it was presented.
   and systems behavior, without reteaching everyday programming concepts.
 - No lesson 2 prediction or experiment has been completed. Next: introduce the
   C integer storage experiment, then compare the same behavior in Rust and Zig.
+
+### Correction to teaching calibration
+
+- The learner clarified that their language background indicates experience
+  level, not a preference for Python or JavaScript examples.
+- The assistant incorrectly inferred a preference for cross-language analogies
+  and used Python to introduce C storage. Corrected the tutor guidance to teach
+  systems concepts directly and use those familiar languages only if requested.
+- The C storage exercise is prepared but no learner attempt or prediction has
+  been received. Its value, size, and address checkpoint remains pending.
 
 ## Retrospective prompts
 
