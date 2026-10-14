@@ -272,6 +272,16 @@ does not mark an idea learned merely because it was presented.
 - The first fixed-capacity store remains the next checkpoint; no solution has
   been supplied and no implementation outcome is recorded.
 
+### Project instruction entry point
+
+- The learner asked why the repository lacked `AGENTS.md`, the usual project
+  instruction entry point for coding agents.
+- Added a root `AGENTS.md` explaining the tutoring purpose and directing agents
+  to the tutor skill and journal when resuming lessons or reviewing learner code.
+  It captures essential learner boundaries without duplicating the curriculum
+  or maintaining a second copy of current progress.
+- The next learning checkpoint remains the learner-written fixed-capacity store.
+
 ## Retrospective prompts
 
 - What can I now explain without relying on language-specific terminology?
