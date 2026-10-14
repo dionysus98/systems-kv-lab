@@ -227,6 +227,23 @@ does not mark an idea learned merely because it was presented.
 - The C storage exercise is prepared but no learner attempt or prediction has
   been received. Its value, size, and address checkpoint remains pending.
 
+### C integer storage checkpoint
+
+- The learner asked about the cast for `%p` and the role of `void` and `*`.
+  Explained pointer type syntax versus dereferencing, generic object pointers,
+  and why variadic arguments do not implicitly convert `int *` to `void *`.
+  These explanations alone do not establish mastery of pointers.
+- The learner implemented assignment of 1000 and a second print, then restored
+  `(void *)&number` in both calls after review.
+- They correctly predicted that only the value would change: size belongs to
+  the `int` type, and the same variable retains its location during this run.
+- Compilation with `-Wall -Wextra -Wpedantic` emitted no diagnostics. Execution
+  exited with status 0 and printed values 42 and 1000, each with size 4 and
+  address `0x7ffeeb51c864`. This size is an observation on this implementation,
+  not a universal C guarantee.
+- Next: repeat the value/size/address experiment in Rust, introducing `mut`,
+  `i32`, and a temporary shared reference. Byte inspection remains pending.
+
 ## Retrospective prompts
 
 - What can I now explain without relying on language-specific terminology?
