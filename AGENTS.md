@@ -23,6 +23,11 @@ The tutor skill defines six practices for exercise goals, gradual help,
 debugging, learner-operated tools, feature comparisons, and later extensions.
 Use it as the detailed teaching contract.
 
+For editor-assisted lessons or `.joyride/` tooling, read
+`.agents/skills/joyride-systems/SKILL.md` for connection, usage, and evidence rules.
+Track reusable Joyride source and launchers here; ignore local runtime artifacts
+such as nREPL port files.
+
 ## Project conventions
 
 - `README.md` describes the project and roadmap.
