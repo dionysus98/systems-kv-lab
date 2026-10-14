@@ -9,7 +9,7 @@ should write the implementation and practice new syntax.
 Before resuming a lesson, designing an exercise, or reviewing learner code:
 
 1. Read `.agents/skills/systems-programming-tutor/SKILL.md` for the teaching method.
-2. Read `session-doc.md` for demonstrated progress, feedback, and the next task.
+2. Read `session-doc.md`, if present, for lesson evidence and the next task.
 3. Inspect the relevant exercise and learner edits before giving guidance.
 
 The learner is an experienced programmer, new to C, Rust, Zig, and systems
@@ -24,8 +24,13 @@ exercises. Compare useful features in C, then Rust, then Zig.
 ## Project conventions
 
 - `README.md` describes the project and roadmap.
-- `lessons/` holds exercises; `session-doc.md` records learning evidence and
-  teaching feedback. Keep current progress in the journal, not in this file.
+- `lessons/` holds exercises; `session-doc.md` is a resettable lesson journal
+  containing attempts, predictions, explanations, results, and pending work.
+  Store durable learner context, preferences, and teaching rules in this file
+  or the tutor skill. They must survive deletion of the journal.
+- If the journal is missing or empty, inspect the exercises and learner code
+  and establish the current checkpoint with the learner. Recreate the journal
+  from observed evidence; do not assume either mastery or a need to restart.
 - Preserve learner edits and unfinished attempts. Review before changing their
   code; do not complete an exercise merely to make it compile.
 - Put generated executables in `build/`; exclude binaries and tool caches from

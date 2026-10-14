@@ -1,75 +1,7 @@
 # Systems Programming Learning Journal
 
-This is a living record of demonstrated understanding and teaching quality. It
-does not mark an idea learned merely because it was presented.
-
-## Learner context
-
-- The learner is an experienced programmer but a complete beginner in C,
-  Rust, Zig, and systems programming.
-- Their primary languages are Clojure, JavaScript, and Python. Assume everyday
-  programming fluency; focus questions on unfamiliar systems concepts. This
-  background indicates tutoring level, not a request for examples or comparisons
-  with those languages. Use such comparisons only if asked.
-- Explain new syntax and systems terminology when first introduced.
-- Keep exercises small enough that language syntax does not obscure the
-  machine-level concept.
-- Teach each feature in C, then Rust, then Zig, followed by an explicit
-  comparison and discussion.
-
-## Learning goals
-
-- Form a concrete model of memory, program execution, and operating-system I/O.
-- Understand how C, Rust, and Zig make different tradeoffs around control,
-  safety, ownership, allocation, and errors.
-- Use compilers, warnings, sanitizers, debuggers, syscall traces, and byte-level
-  inspection deliberately.
-- Build a recoverable append-only key-value store in all three languages.
-- Explain why an implementation works and identify what could make it fail.
-
-## Working method
-
-1. Introduce one small machine-level concept.
-2. Predict before executing.
-3. Implement the same observable feature in C, Rust, and Zig.
-4. Test the prediction and inspect surprising results.
-5. Compare guarantees and tradeoffs.
-6. Record evidence, misconceptions, teaching feedback, and the next exercise.
-
-## Session 0 — Curriculum design (2026-08-17)
-
-### Decisions
-
-- Use a tiny persistent key-value store as the motivating project.
-- Work feature-by-feature across C, Rust, and Zig instead of completing one
-  language before starting another.
-- Use Linux as the initial platform.
-- Begin with stack-based experiments before heap allocation.
-- Delay concurrency until memory, bytes, files, and persistence are understood.
-- Compare behavior rather than forcing identical source code.
-
-### Teaching evidence and feedback
-
-- The learner explicitly emphasized being a complete beginner in all three
-  languages. Future teaching must not infer language knowledge from general
-  programming experience.
-- The learner wants discussion of memory management and why these languages
-  exist, tied to each implemented feature.
-
-### Environment observation
-
-- C compilers, Rust, GDB, `strace`, and Valgrind are available.
-- Zig 0.16.0 is available through the system's asdf-managed setup.
-- The initial Zig starter targeted an older standard-library API. It was
-  corrected to use the Zig 0.16 `std.Io.File` API and verified independently
-  of learner work.
-
-### Next exercise
-
-- Complete lesson 1 predictions, then build and run the C program without
-  changing it.
-- Explain the distinction between source code, a compiler, and an executable
-  in the learner's own words.
+Lesson attempts, predictions, explanations, observed results, and pending work.
+Only demonstrated understanding is recorded as learned.
 
 ## Session 1 — Lesson 1 predictions (2026-08-23)
 
@@ -84,11 +16,6 @@ does not mark an idea learned merely because it was presented.
   restated their conceptual roles rather than proposing an observable test.
   The C checkpoint will compare file type, permissions, and visible contents.
 
-### Next exercise
-
-- Explain the small C program and build command, then ask the learner to
-  predict the program output before compiling or running it.
-
 ### C checkpoint evidence
 
 - The learner correctly predicted the exact visible output, including its
@@ -99,11 +26,6 @@ does not mark an idea learned merely because it was presented.
   permission and `build/hello-c` as a 15,960-byte executable ELF file with
   execute permission. Their first 16 bytes also differed visibly.
 
-### Next exercise
-
-- Have the learner use the observed C evidence to explain source, compiler,
-  executable, standard output, and exit status before moving to Rust.
-
 ### C checkpoint explanation
 
 - The learner correctly distinguished `main.c` as C source text, `cc` as the
@@ -112,12 +34,6 @@ does not mark an idea learned merely because it was presented.
 - The learner described standard output as the CLI. Refine this to a byte
   stream that happened to be connected to the terminal for this run, but can
   also be redirected to a file or piped to another program.
-
-### Next exercise
-
-- Begin the Rust checkpoint by explaining only the syntax in `rust/main.rs`
-  and the `rustc` build command, then ask the learner to predict the visible
-  output, whether the source changes, and what artifacts compilation creates.
 
 ## Session 2 — Rust build checkpoint (2026-09-17)
 
@@ -143,13 +59,6 @@ does not mark an idea learned merely because it was presented.
   and exited successfully. Reading the file confirmed the text and a trailing
   newline (byte `0a`). This demonstrates the distinction between standard
   output and the terminal.
-- The learner explicitly authorized committing and pushing the journal after
-  automatic approval review initially rejected publishing the checkpoint.
-
-### Next exercise
-
-- Introduce the existing Zig starter a little at a time, explaining its explicit
-  I/O context and error handling before asking for a build/run prediction.
 
 ### Zig checkpoint
 
@@ -164,12 +73,6 @@ does not mark an idea learned merely because it was presented.
 - Error propagation was explained and correctly restated, but no failing write
   has been tested. Memory, ownership, and cleanup remain untested.
 
-### Next exercise
-
-- Close lesson 1 with a cross-language comparison and ask whether editing a
-  source file alone changes an already-built executable. Use the prediction
-  to guide the learner's first source edit and rebuild.
-
 ### Source-versus-executable checkpoint
 
 - The learner correctly predicted that editing `c/main.c` without compiling
@@ -178,12 +81,6 @@ does not mark an idea learned merely because it was presented.
   still printed `hello, systems`. Rebuilding with warnings enabled then made
   the executable print the new greeting. This directly demonstrated that the
   executable is a separate artifact produced at compile time.
-
-### Next exercise
-
-- Ask the learner to summarize the complete lesson 1 build pipeline and identify
-  which observed facts came from the source, compiler, executable, shell, and
-  operating system before beginning lesson 2.
 
 ### Lesson 1 retrospective
 
@@ -196,36 +93,9 @@ does not mark an idea learned merely because it was presented.
   the executable, and waited for its exit; the terminal displayed the bytes
   written to standard output. Redirection showed that the output stream need
   not be connected to the terminal.
-- The learner has completed the observable objectives for lesson 1. The next
-  pending topic is integers, bytes, addresses, and function calls.
+- The learner completed the observable objectives for lesson 1.
 
-### Next exercise
-
-- Create a tiny matched C, Rust, and Zig experiment that prints an integer and
-  inspects its bytes and address, asking for predictions before execution.
-
-## Session 3 — Teaching calibration (2026-10-14)
-
-- The learner emphasized their existing programming experience in Clojure,
-  JavaScript, and Python and requested durable context for question design.
-- The tutor skill already distinguished programming experience from systems
-  experience, but omitted their languages and concrete guidance for questions.
-  Added both to the skill and learner context.
-- The assistant's lesson 2 introduction spent unnecessary attention on basic
-  variable declaration. Future explanations should focus on unfamiliar syntax
-  and systems behavior, without reteaching everyday programming concepts.
-- No lesson 2 prediction or experiment has been completed. Next: introduce the
-  C integer storage experiment, then compare the same behavior in Rust and Zig.
-
-### Correction to teaching calibration
-
-- The learner clarified that their language background indicates experience
-  level, not a preference for Python or JavaScript examples.
-- The assistant incorrectly inferred a preference for cross-language analogies
-  and used Python to introduce C storage. Corrected the tutor guidance to teach
-  systems concepts directly and use those familiar languages only if requested.
-- The C storage exercise is prepared but no learner attempt or prediction has
-  been received. Its value, size, and address checkpoint remains pending.
+## Session 3 — C integer storage (2026-10-14)
 
 ### C integer storage checkpoint
 
@@ -241,62 +111,16 @@ does not mark an idea learned merely because it was presented.
   exited with status 0 and printed values 42 and 1000, each with size 4 and
   address `0x7ffeeb51c864`. This size is an observation on this implementation,
   not a universal C guarantee.
-- Next: repeat the value/size/address experiment in Rust, introducing `mut`,
-  `i32`, and a temporary shared reference. Byte inspection remains pending.
 
-### Pace correction
+## Current checkpoint — Fixed-capacity C store
 
-- The learner said the exercises are fun but the pace feels far too slow for
-  an experienced programmer and asked when substantive work begins.
-- The assistant over-fragmented the lesson into routine predictions and syntax
-  questions. Familiar-language calibration alone did not correct the pacing.
-- Updated the tutor skill to use useful implementation checkpoints, provide
-  syntax and boilerplate together, and reserve predictions for meaningful
-  systems behavior or failure modes. Avoid mechanically repeating trivial
-  exercises across all three languages.
-- Proposed next checkpoint: begin a small in-memory key-value store using a
-  fixed-capacity C array of entries, initially with integer keys and values.
-  Implement set/get, replacement, missing-key and full-capacity behavior; use
-  that code to teach layout, pointers, and lifetime. Then compare Rust and Zig
-  at feature level. This replaces the pending trivial Rust assignment exercise;
-  no implementation or learning outcome is claimed yet.
-
-### Preserve hands-on syntax practice
-
-- The learner clarified that faster pacing must preserve practice writing new
-  language syntax. They do not want the assistant to complete the implementation
-  under the label of supplying syntax or boilerplate.
-- Refined the skill: give behavioral specifications, targeted explanations,
-  small examples, and hints where useful; leave implementation to the learner.
-  Supply boilerplate only when it does not remove useful learning work.
-- The first fixed-capacity store remains the next checkpoint; no solution has
-  been supplied and no implementation outcome is recorded.
-
-### Project instruction entry point
-
-- The learner asked why the repository lacked `AGENTS.md`, the usual project
-  instruction entry point for coding agents.
-- Added a root `AGENTS.md` explaining the tutoring purpose and directing agents
-  to the tutor skill and journal when resuming lessons or reviewing learner code.
-  It captures essential learner boundaries without duplicating the curriculum
-  or maintaining a second copy of current progress.
-- The next learning checkpoint remains the learner-written fixed-capacity store.
-
-### First store exercise prepared
-
-- The learner authorized pushing the saved checkpoints and continuing.
-- Prepared `lessons/03-fixed-store/README.md` with the C store specification,
-  a focused syntax reference, build command, and observable acceptance checks.
-  The implementation file contains only a task comment; no solution is supplied.
-- The immediate task is to implement a four-entry integer store with set/get,
-  replacement, missing-key behavior, and capacity errors. The learner has not
-  attempted this checkpoint yet. Rust and Zig comparisons follow working C.
-
-## Retrospective prompts
-
-- What can I now explain without relying on language-specific terminology?
-- What did I predict, and what evidence confirmed or corrected it?
-- Which safety checks came from the language, compiler, tool, or operating
-  system?
-- Did unfamiliar syntax obscure the systems concept?
-- Did the assistant reveal an answer too early or assume missing knowledge?
+- Exercise: `lessons/03-fixed-store/README.md`.
+- Task: implement a four-entry integer store with set/get, replacement,
+  missing-key behavior, and capacity errors in `lessons/03-fixed-store/c/main.c`.
+- The implementation file was prepared with only a task comment. No learner
+  attempt or test result has been reviewed yet.
+- Next: learner defines Entry and Store and implements set, then get and the
+  acceptance checks. Compare the completed feature in Rust and Zig afterward.
+- The earlier Rust integer assignment drill has been superseded by this task.
+- Actual byte representation, memory lifetime failures, and heap allocation
+  remain untested.

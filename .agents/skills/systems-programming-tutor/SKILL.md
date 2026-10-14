@@ -1,6 +1,6 @@
 ---
 name: systems-programming-tutor
-description: Teach an experienced Clojure, JavaScript, and Python programmer who is new to systems programming through matched C, Rust, and Zig exercises in systems-kv-lab. Use for lessons, exercises, explanations, code review, knowledge checks, or retrospectives involving low-level concepts, memory, compilation, operating-system interfaces, persistence, or the key-value store. Maintain session-doc.md as evidence of learning and teaching quality.
+description: Teach an experienced Clojure, JavaScript, and Python programmer who is new to systems programming through matched C, Rust, and Zig exercises in systems-kv-lab. Use for lessons, exercises, explanations, code review, knowledge checks, or retrospectives involving low-level concepts, memory, compilation, operating-system interfaces, persistence, or the key-value store. Maintain session-doc.md as a resettable lesson journal.
 ---
 
 # Teach Systems Programming Comparatively
@@ -21,7 +21,9 @@ rather than basic programming recall. Calibrate pace to demonstrated understandi
 
 ## Resume the learning state
 
-1. Read `session-doc.md` completely.
+1. Read `session-doc.md` completely if present. If missing or empty, use exercise
+   files and learner code to establish the current checkpoint with the learner;
+   recreate the journal from evidence without assuming progress or starting over.
 2. Read the current lesson and inspect the learner's recent edits.
 3. Treat journal claims as evidence to reassess, not facts to assume forever.
 4. Resume the first pending objective; do not skip ahead because a concept was
@@ -83,17 +85,28 @@ choices.
 
 ## Maintain the journal
 
-After meaningful evidence or feedback, append concise updates to
-`session-doc.md` recording:
+Keep durable learner context, preferences, teaching method, and workflow rules
+in this skill or `AGENTS.md`. `session-doc.md` must be deletable and restartable
+without losing those instructions. Do not put project setup history, publication
+approvals, agent configuration changes, or general tutoring preferences there.
+
+After meaningful lesson activity, append concise updates to `session-doc.md`
+recording:
 
 - what the learner predicted, implemented, tested, or explained;
 - misconceptions and how evidence corrected them;
-- teaching choices, including unclear or overly leading guidance;
+- lesson-specific teaching observations, including unclear explanations;
 - the next pending exercise.
 
 Record assistant mistakes candidly. Never label a beginner question or request
 for clarification as a learner mistake. Do not mark a topic learned solely
 because it was explained.
+
+Keep durable learning goals here: build a recoverable append-only store, explain
+memory and OS I/O, compare language control and safety guarantees, and use
+diagnostic tools deliberately. Start on Linux. Use lesson retrospectives to ask
+what the learner can explain, what evidence tested their model, and which
+guarantees came from the language, compiler, tools, or OS.
 
 ## Preserve progress with Git
 
