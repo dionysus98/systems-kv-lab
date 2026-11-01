@@ -1,5 +1,6 @@
 (ns systems-kv.memory
   (:require ["vscode" :as vscode]
+            ["path" :as path]
             [clojure.string :as str]))
 
 (def max-bytes 64)
@@ -80,6 +81,8 @@
          "<div class='lesson'><h2>" (escape-html (:title lesson)) "</h2>"
          "<p><strong>Goal:</strong> " (escape-html (:goal lesson)) "</p>"
          "<p><strong>Question:</strong> " (escape-html (:question lesson)) "</p>"
+         "<div class='controls'><button data-action='open-spec'>Open exercise specification</button>"
+         "<button data-action='open-implementation'>Open learner implementation</button></div>"
          (suggestion-html (:suggestions lesson)) "</div>"
          "<p>Pause your program. Capture Before, step in the debugger, then capture After.</p>"
          "<div class='controls'><label for='expression'>Object</label><input id='expression' value='" (escape-html expression) "' spellcheck='false'>"
@@ -227,6 +230,19 @@
         (.revealRange editor selection vscode/TextEditorRevealType.InCenter)
         true))))
 
+(defn ^:async open-file! [relative-path line]
+  (let [folder (first vscode/workspace.workspaceFolders)]
+    (when-not folder (throw (js/Error. "Open the project workspace first.")))
+    (let [root (-> folder .-uri .-fsPath)
+          file (path/join root relative-path)
+          doc (await (vscode/workspace.openTextDocument file))
+          editor (await (vscode/window.showTextDocument doc #js {:viewColumn vscode/ViewColumn.One :preserveFocus false}))
+          line-index (max 0 (min line (dec (.-lineCount doc))))
+          selection (vscode/Selection. line-index 0 line-index 0)]
+      (set! (.-selection editor) selection)
+      (.revealRange editor selection vscode/TextEditorRevealType.InCenter)
+      true)))
+
 (defn clear! []
   (swap! !state dissoc :before :after :error)
   (render!))
@@ -235,6 +251,10 @@
   (let [action (.-action message) expression (.-expression message)]
     (case action
       "set-expression" (do (swap! !state assoc :expression expression) (render!))
+      "open-spec" (-> (open-file! "lessons/03-fixed-store/README.md" 0)
+                       (.catch #(vscode/window.showErrorMessage (.-message %))))
+      "open-implementation" (-> (open-file! "lessons/03-fixed-store/c/main.c" 0)
+                                 (.catch #(vscode/window.showErrorMessage (.-message %))))
       "before" (capture! :before expression)
       "after" (capture! :after expression)
       "clear" (clear!)
