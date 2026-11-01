@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "fixtures": [
+    {
+      "id": "orient",
+      "checkpoint": "03-c-fixed-store",
+      "language": "C",
+      "phase": "orient",
+      "helpLevel": 0,
+      "goal": "Modify caller-owned storage through a pointer.",
+      "challenge": "Define Entry and Store, initialize an empty store, and implement store_set.",
+      "nextAction": "Read the specification, then write the first attempt.",
+      "evidence": {"behavior": {"done": 0, "total": 7}, "explanation": {"done": 0, "total": 2}, "transfer": {"done": 0, "total": 1}},
+      "observations": []
+    },
+    {
+      "id": "diagnose",
+      "checkpoint": "03-c-fixed-store",
+      "language": "C",
+      "phase": "diagnose",
+      "helpLevel": 2,
+      "goal": "Preserve the store invariant while replacing existing keys.",
+      "challenge": "Interpret the first compiler or test observation before changing code.",
+      "nextAction": "Explain what count represents and why replacement must not increment it.",
+      "evidence": {"behavior": {"done": 3, "total": 7}, "explanation": {"done": 1, "total": 2}, "transfer": {"done": 0, "total": 1}},
+      "observations": [
+        {"time": "14:02", "kind": "BUILD", "status": "success", "text": "Compiled with -Wall -Wextra -Wpedantic."},
+        {"time": "14:03", "kind": "TEST", "status": "warning", "text": "Replacement changed count unexpectedly."},
+        {"time": "14:04", "kind": "TUTOR", "status": "prompt", "text": "What invariant should count preserve?"}
+      ]
+    },
+    {
+      "id": "complete",
+      "checkpoint": "03-c-fixed-store",
+      "language": "C",
+      "phase": "complete",
+      "helpLevel": 1,
+      "goal": "Use a fixed array and pointer-based mutation safely within its invariant.",
+      "challenge": "Apply the same model to a small variation before moving to Rust.",
+      "nextAction": "Add a deletion variation while preserving count and lookup behavior.",
+      "evidence": {"behavior": {"done": 7, "total": 7}, "explanation": {"done": 2, "total": 2}, "transfer": {"done": 1, "total": 1}},
+      "observations": [
+        {"time": "14:10", "kind": "BUILD", "status": "success", "text": "All warnings clean."},
+        {"time": "14:11", "kind": "CHECKS", "status": "success", "text": "All seven store checks passed."},
+        {"time": "14:12", "kind": "TRANSFER", "status": "success", "text": "Learner implemented deletion variation."}
+      ]
+    }
+  ]
+}
