@@ -74,7 +74,7 @@
          ".phases{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0}.phase{padding:7px 10px;border-radius:5px;background:var(--vscode-button-secondaryBackground);color:var(--vscode-descriptionForeground)}"
          ".phase.done{color:var(--vscode-testing-iconPassed);border-bottom:2px solid var(--vscode-testing-iconPassed)}.phase.current{background:var(--vscode-button-background);color:var(--vscode-button-foreground);font-weight:bold}"
          "button{border:0;border-radius:4px;padding:8px 12px;margin:4px 4px 4px 0;background:var(--vscode-button-background);color:var(--vscode-button-foreground);cursor:pointer}button:hover{background:var(--vscode-button-hoverBackground)}"
-         "textarea{width:100%;min-height:90px;box-sizing:border-box;background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border);padding:10px;resize:vertical}"
+         "textarea{width:100%;min-height:90px;box-sizing:border-box;background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border);padding:10px;resize:vertical}textarea:focus{outline:2px solid var(--vscode-focusBorder);outline-offset:1px}"
          ".event{border-left:3px solid var(--vscode-textLink-foreground);padding:7px 10px;margin:8px 0;background:var(--vscode-editor-background)}.chat{padding:8px 12px;margin:8px 0;border-radius:6px;background:var(--vscode-editor-background)}.chat.tutor{border-left:3px solid var(--vscode-textLink-foreground)}.chat.you{border-left:3px solid var(--vscode-testing-iconPassed)}.chat p{margin:4px 0}.muted{color:var(--vscode-descriptionForeground)}"
          "@media(max-width:700px){.grid{grid-template-columns:1fr}}"
          "</style></head><body>"
@@ -128,7 +128,7 @@
            "<p class='muted'>Your predictions, observations, and explanations will appear here.</p>")
          "</aside></div>"
          "<p class='muted'>Every action is learner-visible. The tutor guides; you operate the editor, compiler, and debugger.</p>"
-         "<script nonce='systems-tutor'>const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const p=document.getElementById('prediction');const e=document.getElementById('explanation');const c=document.getElementById('chat');api.postMessage({action:b.dataset.action,prediction:p?p.value:'',explanation:e?e.value:'',question:c?c.value:''})}));</script>"
+         "<script nonce='systems-tutor'>const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const p=document.getElementById('prediction');const e=document.getElementById('explanation');const c=document.getElementById('chat');api.postMessage({action:b.dataset.action,prediction:p?p.value:'',explanation:e?e.value:'',question:c?c.value:''})}));const chat=document.getElementById('chat');if(chat)chat.focus();</script>"
          "</body></html>")))
 
 (defn render! []
@@ -195,5 +195,6 @@
         listener (.onDidReceiveMessage (.-webview panel) handle-message!)
         close-listener (.onDidDispose panel dispose!)]
     (swap! !state assoc :panel panel :disposables [listener close-listener])
+    (.reveal panel vscode/ViewColumn.Beside false)
     (render!)
     :installed))
