@@ -83,6 +83,10 @@
          (case phase
            :orient (str "<p>Get oriented, then choose Predict when you are ready.</p>" (button "next-predict" "I understand the goal → Predict"))
            :predict (str "<p>Make a prediction before running code. This is your model, not a test score.</p>"
+                         "<details><summary>What is a prediction?</summary>"
+                         "<p>Describe what you expect to observe after the next action, and why. You do not need exact bytes or syntax yet.</p>"
+                         "<p class='muted'>Sentence starter: <em>I expect ___ to change because ___.</em></p></details>"
+                         (button "predict-help" "I need a hint")
                          "<textarea id='prediction' placeholder='I predict that ...'>" (escape-html prediction) "</textarea><br>"
                          (button "record-prediction" "Record prediction → Attempt"))
            :attempt (str "<p>Write the implementation yourself. The tutor will not replace your attempt.</p>"
@@ -123,6 +127,7 @@
       "open-implementation" (-> (open-file! "lessons/03-fixed-store/c/main.c" 0)
                                  (.catch #(vscode/window.showErrorMessage (.-message %))))
       "next-predict" (next-phase! :predict)
+      "predict-help" (record! "HINT" "A prediction is an expectation about the next observation, plus your reason. It can be uncertain.")
       "next-observe" (next-phase! :observe)
       "next-explain" (next-phase! :explain)
       "record-prediction" (let [text (.-prediction message)]
