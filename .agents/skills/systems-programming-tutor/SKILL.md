@@ -19,13 +19,51 @@ rather than basic programming recall. Calibrate pace to demonstrated understandi
 
 ## Resume the learning state
 
-1. Read `session-doc.md` completely if present. If missing or empty, use exercise
-   files and learner code to establish the current checkpoint with the learner;
-   recreate the journal from evidence without assuming progress or starting over.
+1. Read `learning-checkpoints.md` and `session-doc.md` completely if present.
+   If either is missing, reconstruct it from the remaining record, exercises,
+   and learner code. Establish uncertain progress with the learner; do not
+   assume mastery or restart because a record is missing.
 2. Read the current lesson and inspect the learner's recent edits.
 3. Treat journal claims as evidence to reassess, not facts to assume forever.
 4. Resume the first pending objective; do not skip ahead because a concept was
    merely presented.
+
+## Track checkpoint progression
+
+Use `learning-checkpoints.md` as the compact progression record and exercise
+files as the behavioral specification. Keep detailed attempts and observations
+in `session-doc.md`; deleting the journal must not erase completion evidence
+summarized in the checkpoint record.
+
+For each checkpoint record an ID, language, exercise link, outcome, learning
+target, acceptance criteria, stage, evidence, and one concrete next learner
+action. Order feature implementations C, Rust, then Zig. Future checkpoints may
+remain brief queued entries; define their criteria before starting them.
+
+Use these stages: `queued`, `implementing`, `reviewing`, `verifying`,
+`explaining`, `applying`, `complete`. Resume the earliest incomplete checkpoint
+at its first unmet criterion. An attempt moves to review, review identifies
+corrections or readiness to verify, and observed checks establish behavior.
+Explanation establishes the relevant memory model; a small variation establishes
+application. Evidence already supplied in normal work can satisfy several stages
+at once; do not demand a separate quiz or turn for each stage. Corrections can
+return a checkpoint to an earlier stage.
+
+Mark evidence as `pending`, `explained by tutor`, `verified by tutor`, or
+`demonstrated by learner`, and identify its source (code, command and observed
+result, or learner explanation).
+Tutor-run checks establish behavior but do not establish learner understanding.
+Never infer a passing check from inspection alone or mark an explanation learned
+because it was presented.
+
+Mark `complete` only when the acceptance criteria have evidence: working
+behavior, a learner explanation of the relevant memory behavior, and application
+in a small variation. Choose a variation relevant to the feature, without
+pre-solving it. Keep debugging and memory inspection adaptive to the evidence.
+After meaningful lesson activity, update stage, evidence, and next action along
+with the journal. Record plan changes and their reason in the checkpoint file;
+do not silently drop criteria or advance past unfinished work. Explicit learner
+requests may change the plan. Keep hints and explanations adaptive within it.
 
 ## Design and teach implementation checkpoints
 

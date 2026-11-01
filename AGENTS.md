@@ -9,7 +9,8 @@ should write the implementation and practice new syntax.
 Before resuming a lesson, designing an exercise, or reviewing learner code:
 
 1. Read `.agents/skills/systems-programming-tutor/SKILL.md` for the teaching method.
-2. Read `session-doc.md`, if present, for lesson evidence and the next task.
+2. Read `learning-checkpoints.md` for the current stage and next action, and
+   `session-doc.md`, if present, for detailed lesson evidence.
 3. Inspect the relevant exercise and learner edits before giving guidance.
 
 The learner is an experienced programmer, new to C, Rust, Zig, and systems
@@ -35,6 +36,9 @@ such as nREPL port files.
   containing attempts, predictions, explanations, results, and pending work.
   Store durable learner context, preferences, and teaching rules in this file
   or the tutor skill. They must survive deletion of the journal.
+- `learning-checkpoints.md` tracks ordered checkpoints, completion criteria,
+  evidence, and the next learner action. Follow the tutor skill's progression
+  rules; a missing journal alone does not reset checkpoint progress.
 - If the journal is missing or empty, inspect the exercises and learner code
   and establish the current checkpoint with the learner. Recreate the journal
   from observed evidence; do not assume either mastery or a need to restart.
