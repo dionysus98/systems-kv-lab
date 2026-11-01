@@ -128,11 +128,14 @@ requests may change the plan. Keep hints and explanations adaptive within it.
 When the learner asks to see progress, default to showing it in the conversation:
 run `python3 scripts/progress.py --chat` and use its outcome, learning target,
 acceptance criteria, evidence sources, and next action to explain progress.
-Show a compact diagram of the current feature's work and completion requirements;
-do not reduce progress to a chain of language names. Summarize related criteria
+Default to a terminal-sized plain-text summary, wrapping at the available width
+(at most 72 columns) and aiming for one screen. Avoid Mermaid diagrams and wide
+tables in terminal progress reports; rendering can exceed the viewport even when
+the source is short. Use `--chat --details` only when expanded criteria are
+requested. Do not reduce progress to a chain of language names. Summarize related criteria
 for readability while retaining important failure cases and distinguishing
 behavioral evidence from explanation and transfer. Tool output alone is not the
-user-facing report. Use readable text when the client cannot render Mermaid.
+user-facing report. Include the concrete goal, evidence state, and next action.
 Do not require a browser, server, MCP installation, or learner-run command for
 an in-chat progress request. This is a snapshot; reread the record on each request.
 

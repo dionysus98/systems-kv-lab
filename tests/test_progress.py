@@ -104,12 +104,12 @@ class ProgressTests(unittest.TestCase):
 
     def test_chat_report_preserves_evidence_categories_and_next_action(self):
         checkpoints = PROGRESS.parse_checkpoints(RECORD)
-        report = PROGRESS.render_chat(checkpoints)
+        report = PROGRESS.render_chat(checkpoints, detailed=True)
         for status in PROGRESS.STATUSES:
             self.assertIn("1 " + status, report)
         self.assertIn("run the capacity checks, then inspect the result.", report)
-        self.assertIn('stage3["CURRENT: Run behavioral checks"]', report)
-        self.assertIn("Building: Build a small store.", report)
+        self.assertIn("01-c-example (verifying)", report)
+        self.assertIn("Build: Build a small store.", report)
         for criterion in checkpoints[0]["criteria"]:
             self.assertIn(criterion["criterion"], report)
             self.assertIn(criterion["source"], report)
@@ -123,9 +123,18 @@ class ProgressTests(unittest.TestCase):
             result = subprocess.run([sys.executable, str(ROOT / "scripts/progress.py"),
                                      "--root", str(root), "--chat"],
                                     capture_output=True, text=True, check=True)
-            self.assertIn("```mermaid", result.stdout)
+            self.assertIn("Next: run the capacity checks", result.stdout)
+            self.assertNotIn("mermaid", result.stdout)
             self.assertEqual(list(root.iterdir()), [record])
             self.assertEqual(record.read_text(), RECORD)
+
+    def test_compact_report_fits_narrow_terminal_and_defers_criteria(self):
+        report = PROGRESS.render_chat(PROGRESS.parse_checkpoints(RECORD), width=48)
+        self.assertTrue(all(len(line) <= 48 for line in report.splitlines()))
+        self.assertLessEqual(len(report.splitlines()), 24)
+        self.assertNotIn("Acceptance criteria:", report)
+        self.assertNotIn("mermaid", report)
+        self.assertIn("verifying", report)
 
 
 if __name__ == "__main__":

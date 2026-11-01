@@ -65,11 +65,12 @@ losing work, export another fresh directory.
 
 ## Visual progress
 
-Ask the tutor "Show my progress" for an in-conversation diagram, evidence
+Ask the tutor "Show my progress" for a compact in-conversation summary, evidence
 counts, and next action. The tutor reads the latest record using
 `python3 scripts/progress.py --chat` and shows the result in its reply. No
-browser or additional integration is required; clients without Mermaid
-rendering get readable text. Ask again whenever you want an updated snapshot.
+browser or additional integration is required. The report wraps to terminal
+width, capped at 72 columns, and avoids oversized diagrams. Ask for details
+to see the full criteria (`--chat --details`), or ask again for an updated snapshot.
 
 For an optional browser view, run `python3 scripts/progress.py --serve` and open `http://127.0.0.1:8765`.
 Refresh after the tutor updates your checkpoint record. The page distinguishes

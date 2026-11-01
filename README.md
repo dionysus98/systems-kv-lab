@@ -43,10 +43,11 @@ be line-for-line translations.
 
 ## See your progress
 
-Ask the tutor **"Show my progress"** to see a diagram, evidence counts, and your
+Ask the tutor **"Show my progress"** to see a compact text summary, evidence counts, and your
 next action directly in the conversation. The tutor reads the current record
 using `python3 scripts/progress.py --chat`; you do not need to run a server.
-Clients without diagram rendering get readable text instead.
+Text wraps to the terminal width, capped at 72 columns. Ask for details to see
+the full criteria (`--chat --details`); use `--width 48` for a narrower report.
 
 For the optional browser view, run the local viewer, then open `http://127.0.0.1:8765`:
 

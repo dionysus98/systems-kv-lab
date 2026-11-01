@@ -8,7 +8,9 @@ from html import escape
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 import re
+import shutil
 import sys
+import textwrap
 
 
 STAGES = ("queued", "implementing", "reviewing", "verifying", "explaining", "applying", "complete")
@@ -204,46 +206,42 @@ def read_record(root):
     return parse_checkpoints((root / "learning-checkpoints.md").read_text(encoding="utf-8"))
 
 
-def render_chat(checkpoints):
-    """Produce a read-only Markdown report the tutor can show in its reply."""
+def render_chat(checkpoints, detailed=False, width=72):
+    """Produce a narrow text report; keep expanded evidence opt-in."""
+    def wrap(value):
+        return textwrap.fill(plain(value), width=width, subsequent_indent="  ")
+
     completed = sum(item["stage"] == "complete" for item in checkpoints)
-    lines = [f"Recorded checkpoints: {completed} / {len(checkpoints)} complete."]
+    lines = [wrap(f"Recorded checkpoints: {completed} / {len(checkpoints)} complete.")]
     current = current_checkpoint(checkpoints)
     if current:
         fields = current["fields"]
         action = fields.get("next learner action", fields.get("next action", "No next action recorded."))
-        lines.extend(["", f'Current: {label(current["id"])} — {current["stage"]}.',
-                      "", "Building: " + label(fields.get("outcome", "No outcome recorded.")),
-                      "", "Learning target: " + label(fields.get("learning target", "Not recorded yet.")),
-                      "", "Next action: " + label(action), "", "```mermaid", "flowchart TD"])
-        descriptions = ("Establish task", "Write implementation", "Review attempt",
-                        "Run behavioral checks", "Explain memory behavior",
-                        "Apply in a variation", "Checkpoint complete")
-        for index, (stage, description) in enumerate(zip(STAGES, descriptions)):
-            prefix = "CURRENT: " if stage == current["stage"] else ""
-            lines.append(f'    stage{index}["{prefix}{description}"]')
-            if index:
-                lines.append(f"    stage{index - 1} --> stage{index}")
-        lines.extend(["```", "", "These are evidence requirements; one attempt can satisfy several stages.",
-                      "", "Acceptance criteria:", "", "| Requirement | Evidence | Source / remaining work |",
-                      "| --- | --- | --- |"])
-        def cell(value):
-            return label(value).replace("|", "&#124;")
-        for row in current["criteria"]:
-            lines.append(f'| {cell(row["criterion"])} | {row["status"]} | {cell(row["source"])} |')
-        if not current["criteria"]:
-            lines.append("| Criteria not recorded yet. | pending | Define criteria before starting. |")
-        if fields.get("assistance"):
-            lines.extend(["", "Assistance used: " + label(fields["assistance"])])
+        lines.extend(["", wrap(f'Current: {current["id"]} ({current["stage"]})'),
+                      wrap("Build: " + fields.get("outcome", "No outcome recorded.")),
+                      wrap("Learn: " + fields.get("learning target", "Not recorded yet."))])
+        counts = Counter(row["status"] for row in current["criteria"])
+        lines.append("")
+        for status in STATUSES:
+            if counts[status]:
+                lines.append(wrap(f"Evidence: {counts[status]} {status}"))
+        if not counts:
+            lines.append(wrap("Evidence: acceptance criteria not recorded yet."))
+        lines.extend(["", wrap("Next: " + action)])
+        if detailed:
+            lines.extend(["", "Acceptance criteria:"])
+            for index, row in enumerate(current["criteria"], 1):
+                lines.extend([wrap(f'{index}. [{row["status"]}] {row["criterion"]}'),
+                              wrap("   Source / remaining work: " + row["source"])])
+            if fields.get("assistance"):
+                lines.extend(["", wrap("Assistance used: " + fields["assistance"])])
     else:
         lines.extend(["", "All recorded checkpoints complete; plan the next feature with the tutor."])
-    lines.extend(["", "Checkpoint overview:"])
-    for item in checkpoints:
-        counts = Counter(row["status"] for row in item["criteria"])
-        evidence = ", ".join(f"{counts[status]} {status}" for status in STATUSES if counts[status])
-        # HTML escaping prevents record text becoming markup in rendered Markdown.
-        lines.append(f'- {label(item["id"])} ({item["stage"]}): {evidence or "criteria not recorded yet"}.')
-    lines.extend(["", "Current checkpoint record only; not a mastery score or full learning history."])
+    if detailed:
+        lines.extend(["", "Checkpoint overview:"])
+        for item in checkpoints:
+            lines.append(wrap(f'- {item["id"]}: {item["stage"]}'))
+    lines.extend(["", wrap("Current record only; not a mastery score.")])
     return "\n".join(lines)
 
 
@@ -278,16 +276,23 @@ def main():
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--serve", action="store_true", help="Serve only the progress view on localhost; refresh to update")
-    mode.add_argument("--chat", action="store_true", help="Print a Markdown/Mermaid report for the tutor's reply; writes no files")
+    mode.add_argument("--chat", action="store_true", help="Print a compact terminal-friendly report; writes no files")
+    parser.add_argument("--details", action="store_true", help="Include full criteria with --chat")
+    parser.add_argument("--width", type=int, default=min(72, shutil.get_terminal_size((72, 24)).columns),
+                        help="Text width for --chat (default: terminal width, capped at 72)")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
     try:
         root = args.root.resolve()
         if not 0 <= args.port <= 65535:
             raise ValueError("Port must be between 0 and 65535.")
+        if args.width < 20:
+            raise ValueError("Text width must be at least 20 columns.")
+        if args.details and not args.chat:
+            raise ValueError("Use --details together with --chat.")
         checkpoints = read_record(root)
         if args.chat:
-            print(render_chat(checkpoints))
+            print(render_chat(checkpoints, detailed=args.details, width=args.width))
         elif args.serve:
             serve(root, args.port)
         else:
