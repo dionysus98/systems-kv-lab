@@ -3,7 +3,12 @@
             [clojure.string :as str]))
 
 (def max-bytes 64)
-(defonce !state (atom {:generation 0 :disposables [] :sessions {} :expression "number"}))
+(defonce !state (atom {:generation 0 :disposables [] :sessions {} :expression "number"
+                       :lesson {:id "03-c-fixed-store"
+                                :title "C fixed-capacity store"
+                                :goal "Observe caller-owned mutation through a Store pointer."
+                                :question "After inserting key 10, which fields should change—and which should stay unchanged?"
+                                :suggestions ["store.count" "store.entries[0]" "store.entries[0].key" "store.entries[0].value"]}}))
 
 (defn valid-expression? [s]
   (boolean (and (string? s) (<= (count s) 256)
@@ -49,7 +54,12 @@
                 (str "<p class='notice'>Truncated: first " (count (:bytes snapshot)) " of " (:size snapshot) " bytes.</p>"))))
        "</section>"))
 
-(defn render-html [{:keys [before after expression error busy? sessions]}]
+(defn suggestion-html [suggestions]
+  (str "<div class='suggestions'><strong>Suggested observations</strong>"
+       (str/join "" (map #(str "<button data-expression='" (escape-html %) "'>" (escape-html %) "</button>") suggestions))
+       "</div>"))
+
+(defn render-html [{:keys [before after expression error busy? sessions lesson]}]
   (let [{:keys [comparable? changed-offsets value-changed? size-changed? address-changed?]}
         (compare-snapshots before after)
         changed (set changed-offsets)
@@ -64,8 +74,13 @@
          "section{border:1px solid var(--vscode-panel-border);border-radius:5px;padding:16px;overflow-wrap:anywhere}dt{color:var(--vscode-descriptionForeground);margin-top:8px}dd{margin:0;font-family:var(--vscode-editor-font-family)}"
          ".muted{color:var(--vscode-descriptionForeground);font-size:12px}.notice{border-left:3px solid var(--vscode-editorWarning-foreground);padding-left:10px}.error{color:var(--vscode-errorForeground)}"
          ".bytes{display:flex;gap:5px;flex-wrap:wrap;margin:14px 0}.byte{font-family:var(--vscode-editor-font-family);padding:5px 8px;border:1px solid var(--vscode-panel-border)}"
-         ".changed{outline:2px solid var(--vscode-editorWarning-foreground);font-weight:bold}</style></head><body>"
+         ".changed{outline:2px solid var(--vscode-editorWarning-foreground);font-weight:bold}.lesson{border-left:4px solid var(--vscode-textLink-foreground);padding:12px 16px;margin:16px 0;background:var(--vscode-textBlockQuote-background)}"
+         ".lesson h2{margin:0 0 6px}.suggestions{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:12px 0}.suggestions strong{margin-right:4px}</style></head><body>"
          "<h1>Memory snapshots <small>· C / GDB</small></h1>"
+         "<div class='lesson'><h2>" (escape-html (:title lesson)) "</h2>"
+         "<p><strong>Goal:</strong> " (escape-html (:goal lesson)) "</p>"
+         "<p><strong>Question:</strong> " (escape-html (:question lesson)) "</p>"
+         (suggestion-html (:suggestions lesson)) "</div>"
          "<p>Pause your program. Capture Before, step in the debugger, then capture After.</p>"
          "<div class='controls'><label for='expression'>Object</label><input id='expression' value='" (escape-html expression) "' spellcheck='false'>"
          (str/join "" (for [[action title] [["before" "Capture Before"] ["after" "Capture After"] ["clear" "Clear"] ["close" "Close"]]]
@@ -88,7 +103,7 @@
          "<div class='grid'>" (snapshot-html "Before" before changed) (snapshot-html "After" after changed) "</div>"
          "<div class='controls'><button data-action='source-before'>Before source</button><button data-action='source-after'>After source</button></div>"
          "<p class='muted'>Bytes are measured in increasing address order. No assumed byte order or conceptual memory is substituted. Snapshots do not prove ownership or lifetime safety.</p>"
-         "<script nonce='systems-memory'>const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>api.postMessage({action:b.dataset.action,expression:document.getElementById('expression').value})));</script>"
+         "<script nonce='systems-memory'>const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>api.postMessage({action:b.dataset.action||'set-expression',expression:b.dataset.expression||document.getElementById('expression').value})));document.querySelectorAll('[data-expression]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('expression').value=b.dataset.expression;}));</script>"
          "</body></html>")))
 
 (defn render! []
@@ -97,7 +112,12 @@
 
 (defn dispose! []
   (let [{:keys [panel disposables generation]} @!state]
-    (reset! !state {:generation (inc generation) :disposables [] :sessions {} :expression "number"})
+    (reset! !state {:generation (inc generation) :disposables [] :sessions {} :expression "number"
+                    :lesson {:id "03-c-fixed-store"
+                             :title "C fixed-capacity store"
+                             :goal "Observe caller-owned mutation through a Store pointer."
+                             :question "After inserting key 10, which fields should change—and which should stay unchanged?"
+                             :suggestions ["store.count" "store.entries[0]" "store.entries[0].key" "store.entries[0].value"]}})
     (doseq [d disposables] (.dispose d))
     (when panel (.dispose panel))
     :disposed))
@@ -214,6 +234,7 @@
 (defn handle-message! [message]
   (let [action (.-action message) expression (.-expression message)]
     (case action
+      "set-expression" (do (swap! !state assoc :expression expression) (render!))
       "before" (capture! :before expression)
       "after" (capture! :after expression)
       "clear" (clear!)

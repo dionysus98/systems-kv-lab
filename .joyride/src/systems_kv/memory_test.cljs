@@ -24,9 +24,15 @@
 
 (deftest rendering-escapes-debugger-content
   (is (= "&lt;script&gt;&amp;&quot;&#39;" (memory/escape-html "<script>&\"'")))
-  (let [html (memory/render-html {:expression "<bad>" :error "<script>bad</script>" :sessions {}})]
+  (let [html (memory/render-html {:expression "<bad>" :error "<script>bad</script>" :sessions {}
+                                  :lesson {:title "C fixed-capacity store"
+                                           :goal "Observe mutation"
+                                           :question "What changes?"
+                                           :suggestions ["store.count"]}})]
     (is (.includes html "&lt;bad&gt;"))
     (is (.includes html "&lt;script&gt;bad&lt;/script&gt;"))
+    (is (.includes html "C fixed-capacity store"))
+    (is (.includes html "store.count"))
     (is (not (.includes html "<script>bad</script>")))))
 
 (deftest debugger-integer-parsing
