@@ -1,6 +1,7 @@
 (ns systems-kv.tutor
   (:require ["vscode" :as vscode]
             ["path" :as path]
+            ["node:child_process" :as child-process]
             [clojure.string :as str]))
 
 (def phases [:orient :predict :attempt :observe :explain :transfer :complete])
@@ -10,6 +11,7 @@
 (defonce !state (atom {:phase :orient
                        :prediction ""
                        :events []
+                       :chat-busy? false
                        :messages [{:role "tutor" :text "Welcome. We are building a small in-memory key-value store. We will make one change, observe what the machine does, and use that evidence to understand pointers and storage."}]
                        :panel nil
                        :disposables []}))
@@ -51,18 +53,46 @@
 (defn button [action label]
   (str "<button data-action='" action "'>" label "</button>"))
 
-(defn answer-question [question]
-  (let [q (str/lower-case question)]
-    (cond
-      (str/includes? q "pointer") "A pointer is a value that identifies another object's location. A Store* lets a function change the caller's Store instead of changing a private copy."
-      (or (str/includes? q "success") (str/includes? q "done")) "For this checkpoint, success means the store inserts, replaces, looks up, handles missing keys, and rejects a fifth distinct key without breaking its count invariant."
-      (or (str/includes? q "build") (str/includes? q "store")) "We are starting with a four-entry array—no heap allocation or files yet. First we will implement store_set, then lookup."
-      :else "Start with the observable question: what should change in the Store after inserting key 10? Your prediction can be uncertain; we will test it together.")))
+(defn conversation-prompt [messages question]
+  (str "You are the tutor for Systems KV Lab. Answer the learner's question directly and warmly. "
+       "Use the current project files, AGENTS.md, learner profile, checkpoint, and tutor skill as context. "
+       "Do not implement the learner's substantive exercise. Explain concepts, ask a useful follow-up, "
+       "and keep the learner's next action small. Distinguish observed facts from general rules.\n\n"
+       "Current situation: C fixed-capacity store. The learner is orienting before implementing store_set. "
+       "The goal is to understand caller-owned mutation, pointers, array capacity, and invariants.\n\n"
+       "Conversation so far:\n"
+       (str/join "\n" (map #(str (if (= "tutor" (:role %)) "Tutor" "Learner") ": " (:text %)) messages))
+       "\nLearner's new question: " question))
+
+(defn ^:async ask-pi! [question]
+  (let [root (workspace-root)
+        prompt (conversation-prompt (:messages @!state) question)]
+    (when-not root (throw (js/Error. "Open the project workspace first.")))
+    (swap! !state assoc :chat-busy? true)
+    (render!)
+    (try
+      (let [response (await (js/Promise. (fn [resolve reject]
+                                           (let [child (child-process/execFile "pi"
+                                                       #js ["--print" "--no-session" "--no-extensions" prompt]
+                                                       #js {:cwd root :maxBuffer 1048576}
+                                                       (fn [error stdout stderr]
+                                                         (if error
+                                                           (reject (js/Error. (or (.-message error) (str stderr))))
+                                                           (resolve (str/trim stdout)))))]
+                                             (.end (.-stdin child))))))]
+        (swap! !state update :messages conj {:role "tutor" :text response})
+        (record! "CHAT" "Tutor answered using the project learning context."))
+      (catch :default error
+        (swap! !state update :messages conj {:role "tutor" :text (str "I could not reach the tutor agent: " (.-message error))})
+        (record! "CHAT ERROR" "Tutor agent unavailable."))
+      (finally
+        (swap! !state assoc :chat-busy? false)
+        (render!)))))
 
 (defn chat-lines [messages]
   (str/join "" (map #(str "<div class='chat " (:role %) "'><strong>" (if (= "tutor" (:role %)) "Tutor" "You") "</strong><p>" (escape-html (:text %)) "</p></div>") messages)))
 
-(defn render-html [{:keys [phase prediction events messages]}]
+(defn render-html [{:keys [phase prediction events messages chat-busy?]}]
   (let [current (phase-index phase)]
     (str "<!doctype html><html><head><meta charset='UTF-8'>"
          "<meta http-equiv='Content-Security-Policy' content=\"default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-systems-tutor';\">"
@@ -88,8 +118,9 @@
          "<div class='card focus'><h2>💬 Conversation with your tutor</h2>"
          (chat-lines messages)
          (if (= phase :orient)
-           (str "<textarea id='chat' placeholder='Ask anything about the goal...'></textarea><br>"
-                (button "ask-question" "Ask the tutor")
+           (str (when chat-busy? "<p class='muted'>Tutor is thinking…</p>")
+                "<textarea id='chat' placeholder='Ask anything about the goal...'></textarea><br>"
+                (button "ask-question" (if chat-busy? "Tutor is thinking…" "Ask the tutor"))
                 (button "quick-pointer" "Why pointers?")
                 (button "quick-success" "What counts as success?")
                 (button "open-spec" "Read specification")
@@ -146,18 +177,14 @@
                        (.catch #(vscode/window.showErrorMessage (.-message %))))
       "open-implementation" (-> (open-file! "lessons/03-fixed-store/c/main.c" 0)
                                  (.catch #(vscode/window.showErrorMessage (.-message %))))
-      "ask-question" (let [question (.-question message)]
-                        (if (str/blank? question)
-                          (vscode/window.showWarningMessage "Ask a question first.")
-                          (do (swap! !state update :messages into [{:role "you" :text question}
-                                                                     {:role "tutor" :text (answer-question question)}])
-                              (record! "CHAT" "Learner asked about the goal."))))
-      "quick-pointer" (do (swap! !state update :messages into [{:role "you" :text "Why do pointers matter here?"}
-                                                                  {:role "tutor" :text (answer-question "Why do pointers matter?" )}])
-                           (record! "CHAT" "Tutor explained why pointers matter."))
-      "quick-success" (do (swap! !state update :messages into [{:role "you" :text "What counts as success?"}
-                                                                 {:role "tutor" :text (answer-question "What counts as success?" )}])
-                          (record! "CHAT" "Tutor explained the success criteria."))
+      "ask-question" (let [question (str/trim (.-question message))]
+                        (if (or (str/blank? question) (:chat-busy? @!state))
+                          (when (str/blank? question) (vscode/window.showWarningMessage "Ask a question first."))
+                          (do (swap! !state update :messages conj {:role "you" :text question})
+                              (record! "CHAT" "Learner asked a question.")
+                              (ask-pi! question))))
+      "quick-pointer" (handle-message! #js {:action "ask-question" :question "Why do pointers matter here?"})
+      "quick-success" (handle-message! #js {:action "ask-question" :question "What counts as success for this checkpoint?"})
       "ready-predict" (next-phase! :predict)
       "next-predict" (next-phase! :predict)
       "predict-help" (record! "HINT" "A prediction is an expectation about the next observation, plus your reason. It can be uncertain.")
@@ -182,7 +209,7 @@
 (defn dispose! []
   (doseq [disposable (:disposables @!state)] (.dispose disposable))
   (when-let [panel (:panel @!state)] (.dispose panel))
-  (reset! !state {:phase :orient :prediction "" :events []
+  (reset! !state {:phase :orient :prediction "" :events [] :chat-busy? false
                   :messages [{:role "tutor" :text "Welcome. We are building a small in-memory key-value store. We will make one change, observe what the machine does, and use that evidence to understand pointers and storage."}]
                   :panel nil :disposables []})
   :disposed)
