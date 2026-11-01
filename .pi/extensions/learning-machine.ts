@@ -344,4 +344,43 @@ export default function learningMachine(pi: ExtensionAPI) {
 		}
 	},
 	});
+
+	const recordResponse = async (kind: "prediction" | "explanation" | "reflection", ctx: ExtensionCommandContext) => {
+		if (!ctx.hasUI) {
+			ctx.ui.notify(`/${kind} requires interactive input`, "error");
+			return;
+		}
+		const prompt = kind === "prediction"
+			? "Before running anything, what do you predict will happen?"
+			: kind === "explanation"
+				? "Explain the relevant memory model in your own words."
+				: "What did you learn, and what should we try next?";
+		const response = await ctx.ui.input(prompt, "");
+		if (!response?.trim()) {
+			ctx.ui.notify("No response recorded.", "info");
+			return;
+		}
+		pi.appendEntry("learning-machine-response", {
+			checkpoint: loadCurrentCheckpoint().checkpoint,
+			kind,
+			text: response.trim(),
+			createdAt: new Date().toISOString(),
+		});
+		ctx.ui.notify(`${kind[0].toUpperCase()}${kind.slice(1)} recorded.`, "success");
+	};
+
+	pi.registerCommand("predict", {
+		description: "Record a prediction before an experiment",
+		handler: async (_args, ctx) => recordResponse("prediction", ctx),
+	});
+
+	pi.registerCommand("explain", {
+		description: "Record an explanation of the current concept",
+		handler: async (_args, ctx) => recordResponse("explanation", ctx),
+	});
+
+	pi.registerCommand("reflect", {
+		description: "Record a lesson reflection",
+		handler: async (_args, ctx) => recordResponse("reflection", ctx),
+	});
 }
