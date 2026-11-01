@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ExtensionAPI, ExtensionCommandContext, Theme } from "@earendil-works/pi-coding-agent";
-import { matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
+import { matchesKey, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { dispatch, initialState, type LearningCommand, type LearningState } from "../../learning-machine/engine.ts";
 
 type Phase = "orient" | "predict" | "attempt" | "observe" | "explain" | "transfer" | "complete" | "blocked";
@@ -114,9 +114,9 @@ function loadCurrentCheckpoint(): Fixture {
 		evidence: {
 			behavior: { done: Math.min(total, behavior.done), total },
 			explanation: { done: stage === "explaining" || stage === "applying" ? 1 : 0, total: 1 },
-			transfer: { done: demonstrated.done, total: Math.max(1, demonstrated.total) },
+			transfer: { done: demonstrated.done > 0 ? 1 : 0, total: 1 },
 		},
-		observations: [{ time: "now", kind: "STATE", status: "prompt", text: `Loaded from ${path}` }],
+		observations: [{ time: "now", kind: "STATE", status: "prompt", text: "Checkpoint loaded" }],
 	};
 }
 
@@ -195,18 +195,22 @@ class Cockpit {
 
 	private panel(title: string, lines: string[], width: number): string[] {
 		const inner = Math.max(8, width - 4);
-		const top = this.theme.fg("border", `┌─ ${title} ${"─".repeat(Math.max(0, inner - title.length - 3))}┐`);
-		const body = lines.map((line) => this.theme.fg("border", "│ ") + truncateToWidth(line, inner) + this.theme.fg("border", " │"));
-		const bottom = this.theme.fg("border", `└${"─".repeat(width - 2)}┘`);
-		return [truncateToWidth(top, width), ...body, truncateToWidth(bottom, width)];
+		const titleText = ` ${title} `;
+		const top = this.theme.fg("border", `┌─${titleText}${"─".repeat(Math.max(0, width - visibleWidth(titleText) - 3))}┐`);
+		const padLine = (line: string) => {
+			const content = truncateToWidth(line, inner, "…", true);
+			return this.theme.fg("border", "│ ") + content + " ".repeat(Math.max(0, inner - visibleWidth(content))) + this.theme.fg("border", " │");
+		};
+		const body = lines.map(padLine);
+		const bottom = this.theme.fg("border", `└${"─".repeat(Math.max(0, width - 2))}┘`);
+		return [truncateToWidth(top, width), ...body, bottom];
 	}
 
 	private renderHeader(width: number): string {
 		const f = this.fixture;
-		const title = this.theme.fg("accent", " LEARNING MACHINE ");
-		const status = this.theme.fg("warning", `● HELP ${f.helpLevel}/4`);
-		const left = `${title}${this.theme.fg("muted", ` ${f.language} FIXED STORE · ${f.checkpoint} · `)}${this.theme.fg("accent", f.phase.toUpperCase())}`;
-		return truncateToWidth(left + " ".repeat(Math.max(1, width - left.length - status.length)) + status, width);
+		const left = this.theme.fg("accent", "LEARNING MACHINE") + this.theme.fg("muted", `  ${f.language} · ${f.checkpoint} · `) + this.theme.fg("accent", f.phase.toUpperCase());
+		const status = this.theme.fg("warning", `HELP ${f.helpLevel}/4`);
+		return truncateToWidth(left + " ".repeat(Math.max(1, width - visibleWidth(left) - visibleWidth(status))) + status, width);
 	}
 
 	render(width: number): string[] {
@@ -215,16 +219,15 @@ class Cockpit {
 		const lines: string[] = ["", this.renderHeader(width), this.theme.fg("border", "─".repeat(width))];
 		const narrow = width < 90;
 		if (narrow) {
-			lines.push(...this.panel("ACTIVE CHALLENGE", this.challengeLines(f, width), width));
+			lines.push(...this.panel("CHALLENGE", this.challengeLines(f, width), width));
 			lines.push(...this.panel("EVIDENCE", this.evidenceLines(f), width));
-			lines.push(...this.panel("OBSERVATIONS", this.observationLines(f), width));
 		} else {
 			const gap = 1;
 			const leftWidth = Math.max(24, Math.floor((width - gap * 2) * 0.22));
 			const rightWidth = Math.max(28, Math.floor((width - gap * 2) * 0.25));
 			const centerWidth = Math.max(32, width - leftWidth - rightWidth - gap * 2);
-			const left = this.panel("CURRICULUM", this.curriculumLines(f), leftWidth);
-			const center = this.panel("ACTIVE CHALLENGE", this.challengeLines(f, centerWidth), centerWidth);
+			const left = this.panel("PHASES", this.curriculumLines(f), leftWidth);
+			const center = this.panel("CHALLENGE", this.challengeLines(f, centerWidth), centerWidth);
 			const right = this.panel("EVIDENCE", this.evidenceLines(f), rightWidth);
 			const rows = Math.max(left.length, center.length, right.length);
 			for (let i = 0; i < rows; i++) {
@@ -239,7 +242,7 @@ class Cockpit {
 		}
 		lines.push(this.theme.fg("border", "─".repeat(width)));
 		lines.push(...this.panel("OBSERVATIONS", this.observationLines(f), width));
-		lines.push(this.theme.fg("muted", " [1] orient  [2] diagnose  [3] complete   [h] more help   [esc] close"));
+		lines.push(this.theme.fg("muted", " 1/2/3 demo states   h hint   esc close"));
 		lines.push("");
 		this.cachedWidth = width;
 		this.cachedLines = lines.map((line) => truncateToWidth(line, width));
@@ -267,7 +270,7 @@ class Cockpit {
 
 	private evidenceLines(f: Fixture): string[] {
 		const rows = [
-			["BEHAVIOR", f.evidence.behavior],
+			["CHECKS", f.evidence.behavior],
 			["EXPLAIN", f.evidence.explanation],
 			["TRANSFER", f.evidence.transfer],
 		] as const;
