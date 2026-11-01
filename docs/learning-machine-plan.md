@@ -98,6 +98,15 @@ still incomplete.
    - Phase and help-level indicators.
    - Keyboard-first controls with mouse support where useful.
 
+7. **VS Code / Joyride companion**
+   - Use Joyride for editor-native debugger and memory visualizations.
+   - Keep Pi responsible for lesson orchestration, prompts, evidence policy, and
+     progression; keep VS Code responsible for source navigation and live
+     debugging.
+   - Exchange structured observations rather than scraping rendered HTML.
+   - Prefer a shared append-only observation log or explicit nREPL commands.
+   - Label snapshots as measured, stale, truncated, unavailable, or ended.
+
 ## State model
 
 Use structured state internally, while keeping Markdown records readable and
