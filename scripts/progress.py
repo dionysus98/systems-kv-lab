@@ -207,26 +207,42 @@ def read_record(root):
 def render_chat(checkpoints):
     """Produce a read-only Markdown report the tutor can show in its reply."""
     completed = sum(item["stage"] == "complete" for item in checkpoints)
-    lines = [f"Recorded checkpoints: {completed} / {len(checkpoints)} complete.", "", "```mermaid", "flowchart TD"]
-    for index, item in enumerate(checkpoints):
-        # Keep record text out of Mermaid syntax; node IDs are generated locally.
-        language = re.sub(r"[^\w .+-]", " ", plain(item["fields"].get("language", "Unspecified")))
-        lines.append(f'    step{index}["{index + 1}. {language}: {item["stage"]}"]')
-        if index:
-            lines.append(f"    step{index - 1} --> step{index}")
-    lines.extend(["```", "", "Evidence recorded:"])
-    for item in checkpoints:
-        counts = Counter(row["status"] for row in item["criteria"])
-        evidence = ", ".join(f"{counts[status]} {status}" for status in STATUSES if counts[status])
-        # HTML escaping prevents record text becoming markup in rendered Markdown.
-        lines.append(f'- {label(item["id"])}: {evidence or "criteria not recorded yet"}.')
+    lines = [f"Recorded checkpoints: {completed} / {len(checkpoints)} complete."]
     current = current_checkpoint(checkpoints)
     if current:
         fields = current["fields"]
         action = fields.get("next learner action", fields.get("next action", "No next action recorded."))
-        lines.extend(["", "Next action: " + label(action)])
+        lines.extend(["", f'Current: {label(current["id"])} — {current["stage"]}.',
+                      "", "Building: " + label(fields.get("outcome", "No outcome recorded.")),
+                      "", "Learning target: " + label(fields.get("learning target", "Not recorded yet.")),
+                      "", "Next action: " + label(action), "", "```mermaid", "flowchart TD"])
+        descriptions = ("Establish task", "Write implementation", "Review attempt",
+                        "Run behavioral checks", "Explain memory behavior",
+                        "Apply in a variation", "Checkpoint complete")
+        for index, (stage, description) in enumerate(zip(STAGES, descriptions)):
+            prefix = "CURRENT: " if stage == current["stage"] else ""
+            lines.append(f'    stage{index}["{prefix}{description}"]')
+            if index:
+                lines.append(f"    stage{index - 1} --> stage{index}")
+        lines.extend(["```", "", "These are evidence requirements; one attempt can satisfy several stages.",
+                      "", "Acceptance criteria:", "", "| Requirement | Evidence | Source / remaining work |",
+                      "| --- | --- | --- |"])
+        def cell(value):
+            return label(value).replace("|", "&#124;")
+        for row in current["criteria"]:
+            lines.append(f'| {cell(row["criterion"])} | {row["status"]} | {cell(row["source"])} |')
+        if not current["criteria"]:
+            lines.append("| Criteria not recorded yet. | pending | Define criteria before starting. |")
+        if fields.get("assistance"):
+            lines.extend(["", "Assistance used: " + label(fields["assistance"])])
     else:
         lines.extend(["", "All recorded checkpoints complete; plan the next feature with the tutor."])
+    lines.extend(["", "Checkpoint overview:"])
+    for item in checkpoints:
+        counts = Counter(row["status"] for row in item["criteria"])
+        evidence = ", ".join(f"{counts[status]} {status}" for status in STATUSES if counts[status])
+        # HTML escaping prevents record text becoming markup in rendered Markdown.
+        lines.append(f'- {label(item["id"])} ({item["stage"]}): {evidence or "criteria not recorded yet"}.')
     lines.extend(["", "Current checkpoint record only; not a mastery score or full learning history."])
     return "\n".join(lines)
 

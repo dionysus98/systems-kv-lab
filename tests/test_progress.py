@@ -108,8 +108,11 @@ class ProgressTests(unittest.TestCase):
         for status in PROGRESS.STATUSES:
             self.assertIn("1 " + status, report)
         self.assertIn("run the capacity checks, then inspect the result.", report)
-        self.assertIn('step0["1. C: verifying"]', report)
-        self.assertIn("step0 --> step1", report)
+        self.assertIn('stage3["CURRENT: Run behavioral checks"]', report)
+        self.assertIn("Building: Build a small store.", report)
+        for criterion in checkpoints[0]["criteria"]:
+            self.assertIn(criterion["criterion"], report)
+            self.assertIn(criterion["source"], report)
         self.assertIn("0 / 2 complete", report)
 
     def test_chat_mode_writes_no_files(self):
