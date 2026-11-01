@@ -60,7 +60,7 @@
       :else "Start with the observable question: what should change in the Store after inserting key 10? Your prediction can be uncertain; we will test it together.")))
 
 (defn chat-lines [messages]
-  (str/join "" (map #(str "<div class='chat " (:role %) "><strong>" (if (= "tutor" (:role %)) "Tutor" "You") "</strong><p>" (escape-html (:text %)) "</p></div>") messages)))
+  (str/join "" (map #(str "<div class='chat " (:role %) "'><strong>" (if (= "tutor" (:role %)) "Tutor" "You") "</strong><p>" (escape-html (:text %)) "</p></div>") messages)))
 
 (defn render-html [{:keys [phase prediction events messages]}]
   (let [current (phase-index phase)]
@@ -85,7 +85,7 @@
                                           (if (< index current) "✓ " (if (= index current) "→ " "○ "))
                                           (phase-labels phase) "</span>")) phases))
          "</div>"
-         "<div class='card focus'><h2>Talk through the goal</h2>"
+         "<div class='card focus'><h2>💬 Conversation with your tutor</h2>"
          (chat-lines messages)
          (if (= phase :orient)
            (str "<textarea id='chat' placeholder='Ask anything about the goal...'></textarea><br>"
