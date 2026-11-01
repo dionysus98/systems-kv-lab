@@ -10,6 +10,7 @@
 (defonce !state (atom {:phase :orient
                        :prediction ""
                        :events []
+                       :messages [{:role "tutor" :text "Welcome. We are building a small in-memory key-value store. We will make one change, observe what the machine does, and use that evidence to understand pointers and storage."}]
                        :panel nil
                        :disposables []}))
 
@@ -50,7 +51,18 @@
 (defn button [action label]
   (str "<button data-action='" action "'>" label "</button>"))
 
-(defn render-html [{:keys [phase prediction events]}]
+(defn answer-question [question]
+  (let [q (str/lower-case question)]
+    (cond
+      (str/includes? q "pointer") "A pointer is a value that identifies another object's location. A Store* lets a function change the caller's Store instead of changing a private copy."
+      (or (str/includes? q "success") (str/includes? q "done")) "For this checkpoint, success means the store inserts, replaces, looks up, handles missing keys, and rejects a fifth distinct key without breaking its count invariant."
+      (or (str/includes? q "build") (str/includes? q "store")) "We are starting with a four-entry array—no heap allocation or files yet. First we will implement store_set, then lookup."
+      :else "Start with the observable question: what should change in the Store after inserting key 10? Your prediction can be uncertain; we will test it together.")))
+
+(defn chat-lines [messages]
+  (str/join "" (map #(str "<div class='chat " (:role %) "><strong>" (if (= "tutor" (:role %)) "Tutor" "You") "</strong><p>" (escape-html (:text %)) "</p></div>") messages)))
+
+(defn render-html [{:keys [phase prediction events messages]}]
   (let [current (phase-index phase)]
     (str "<!doctype html><html><head><meta charset='UTF-8'>"
          "<meta http-equiv='Content-Security-Policy' content=\"default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-systems-tutor';\">"
@@ -63,7 +75,7 @@
          ".phase.done{color:var(--vscode-testing-iconPassed);border-bottom:2px solid var(--vscode-testing-iconPassed)}.phase.current{background:var(--vscode-button-background);color:var(--vscode-button-foreground);font-weight:bold}"
          "button{border:0;border-radius:4px;padding:8px 12px;margin:4px 4px 4px 0;background:var(--vscode-button-background);color:var(--vscode-button-foreground);cursor:pointer}button:hover{background:var(--vscode-button-hoverBackground)}"
          "textarea{width:100%;min-height:90px;box-sizing:border-box;background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border);padding:10px;resize:vertical}"
-         ".event{border-left:3px solid var(--vscode-textLink-foreground);padding:7px 10px;margin:8px 0;background:var(--vscode-editor-background)}.muted{color:var(--vscode-descriptionForeground)}"
+         ".event{border-left:3px solid var(--vscode-textLink-foreground);padding:7px 10px;margin:8px 0;background:var(--vscode-editor-background)}.chat{padding:8px 12px;margin:8px 0;border-radius:6px;background:var(--vscode-editor-background)}.chat.tutor{border-left:3px solid var(--vscode-textLink-foreground)}.chat.you{border-left:3px solid var(--vscode-testing-iconPassed)}.chat p{margin:4px 0}.muted{color:var(--vscode-descriptionForeground)}"
          "@media(max-width:700px){.grid{grid-template-columns:1fr}}"
          "</style></head><body>"
          "<h1>⚡ Tutor Studio</h1><p class='subtitle'>C fixed-capacity store · an interactive lesson workspace</p>"
@@ -73,11 +85,19 @@
                                           (if (< index current) "✓ " (if (= index current) "→ " "○ "))
                                           (phase-labels phase) "</span>")) phases))
          "</div>"
-         "<div class='card focus'><h2>Current mission</h2>"
-         "<p><strong>Goal:</strong> modify caller-owned storage through a <code>Store*</code>.</p>"
-         "<p><strong>Question:</strong> after inserting key 10, which fields should change—and which should stay unchanged?</p>"
-         (button "open-spec" "Read specification")
-         (button "open-implementation" "Open your implementation")
+         "<div class='card focus'><h2>Talk through the goal</h2>"
+         (chat-lines messages)
+         (if (= phase :orient)
+           (str "<textarea id='chat' placeholder='Ask anything about the goal...'></textarea><br>"
+                (button "ask-question" "Ask the tutor")
+                (button "quick-pointer" "Why pointers?")
+                (button "quick-success" "What counts as success?")
+                (button "open-spec" "Read specification")
+                (button "ready-predict" "I understand enough → Predict"))
+           (str "<p><strong>Goal:</strong> modify caller-owned storage through a <code>Store*</code>.</p>"
+                "<p><strong>Question:</strong> after inserting key 10, which fields should change—and which should stay unchanged?</p>"
+                (button "open-spec" "Read specification")
+                (button "open-implementation" "Open your implementation")))
          "</div>"
          "<div class='grid'><section class='card'><h2>Your move</h2>"
          (case phase
@@ -108,7 +128,7 @@
            "<p class='muted'>Your predictions, observations, and explanations will appear here.</p>")
          "</aside></div>"
          "<p class='muted'>Every action is learner-visible. The tutor guides; you operate the editor, compiler, and debugger.</p>"
-         "<script nonce='systems-tutor'>const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const p=document.getElementById('prediction');const e=document.getElementById('explanation');api.postMessage({action:b.dataset.action,prediction:p?p.value:'',explanation:e?e.value:''})}));</script>"
+         "<script nonce='systems-tutor'>const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const p=document.getElementById('prediction');const e=document.getElementById('explanation');const c=document.getElementById('chat');api.postMessage({action:b.dataset.action,prediction:p?p.value:'',explanation:e?e.value:'',question:c?c.value:''})}));</script>"
          "</body></html>")))
 
 (defn render! []
@@ -126,6 +146,19 @@
                        (.catch #(vscode/window.showErrorMessage (.-message %))))
       "open-implementation" (-> (open-file! "lessons/03-fixed-store/c/main.c" 0)
                                  (.catch #(vscode/window.showErrorMessage (.-message %))))
+      "ask-question" (let [question (.-question message)]
+                        (if (str/blank? question)
+                          (vscode/window.showWarningMessage "Ask a question first.")
+                          (do (swap! !state update :messages into [{:role "you" :text question}
+                                                                     {:role "tutor" :text (answer-question question)}])
+                              (record! "CHAT" "Learner asked about the goal."))))
+      "quick-pointer" (do (swap! !state update :messages into [{:role "you" :text "Why do pointers matter here?"}
+                                                                  {:role "tutor" :text (answer-question "Why do pointers matter?" )}])
+                           (record! "CHAT" "Tutor explained why pointers matter."))
+      "quick-success" (do (swap! !state update :messages into [{:role "you" :text "What counts as success?"}
+                                                                 {:role "tutor" :text (answer-question "What counts as success?" )}])
+                          (record! "CHAT" "Tutor explained the success criteria."))
+      "ready-predict" (next-phase! :predict)
       "next-predict" (next-phase! :predict)
       "predict-help" (record! "HINT" "A prediction is an expectation about the next observation, plus your reason. It can be uncertain.")
       "next-observe" (next-phase! :observe)
@@ -149,7 +182,9 @@
 (defn dispose! []
   (doseq [disposable (:disposables @!state)] (.dispose disposable))
   (when-let [panel (:panel @!state)] (.dispose panel))
-  (reset! !state {:phase :orient :prediction "" :events [] :panel nil :disposables []})
+  (reset! !state {:phase :orient :prediction "" :events []
+                  :messages [{:role "tutor" :text "Welcome. We are building a small in-memory key-value store. We will make one change, observe what the machine does, and use that evidence to understand pointers and storage."}]
+                  :panel nil :disposables []})
   :disposed)
 
 (defn install! []
