@@ -63,6 +63,18 @@ as the store grows, with computer science introduced to support real decisions.
 Resetting the journal alone does not reset progress. To start again without
 losing work, export another fresh directory.
 
+## Visual progress
+
+Run `python3 scripts/progress.py --serve` and open `http://127.0.0.1:8765`.
+Refresh after the tutor updates your checkpoint record. The page distinguishes
+pending work, tutor explanations, tutor-verified checks, and learner demonstrations;
+it shows the next learner action and lets you filter checkpoints by language.
+Use Ctrl+C in the terminal to stop it, or choose another port with `--port 8766`.
+
+For an offline page without a running server, use `python3 scripts/progress.py`
+and open `build/progress.html`. Rerun the command whenever you want a fresh
+snapshot. Neither mode changes your evidence or calculates a mastery score.
+
 ## Scope of the starter
 
 Introductory exercises and the C fixed-store specification are included today.

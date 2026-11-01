@@ -123,6 +123,23 @@ with the journal. Record plan changes and their reason in the checkpoint file;
 do not silently drop criteria or advance past unfinished work. Explicit learner
 requests may change the plan. Keep hints and explanations adaptive within it.
 
+### Visual progress tool
+
+Use `python3 scripts/progress.py` to create `build/progress.html`, or let the
+learner run `python3 scripts/progress.py --serve` for a local page that reads
+the latest checkpoint record on refresh. The tool is a read-only view of the
+records, not a grader. After updating checkpoints, regenerate an existing
+snapshot if `build/progress.html` is present. Never change evidence to improve
+the display or infer a mastery percentage from stage position.
+
+Keep checkpoint entries under `## <id>` with `- Stage:` and other named fields;
+indented lines continue a field. Record evidence under
+`### Acceptance criteria and evidence` in three columns: criterion, evidence
+status, source or remaining work. Use the four defined evidence statuses and
+escape literal table pipes as `\|`. Narrative `##` sections have no Stage field.
+If the viewer reports a malformed record, inspect and correct its structure
+without changing the meaning of learner evidence.
+
 ## Design and teach implementation checkpoints
 
 Teach one useful feature at a time in this order: C, Rust, then Zig. Bundle

@@ -41,6 +41,23 @@ For each feature:
 The three programs share a behavioral specification; they are not required to
 be line-for-line translations.
 
+## See your progress
+
+Run the local viewer, then open `http://127.0.0.1:8765`:
+
+```sh
+python3 scripts/progress.py --serve
+```
+
+Refresh the page after a lesson update to see the current checkpoint, next
+action, stages, and evidence. Filter by language or expand a checkpoint's
+details. The view reads `learning-checkpoints.md`; the tutor maintains that
+record. It does not infer mastery or include unrecorded historical progress.
+
+For an offline snapshot, run `python3 scripts/progress.py` and open
+`build/progress.html`. Rerun the command to update it. Both modes use only
+Python's standard library and work in a fresh learner's workspace.
+
 ## Roadmap
 
 1. Source code, compilers, executables, and exit status
