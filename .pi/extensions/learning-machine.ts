@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext, Theme } from "@earendil-works/pi-coding-agent";
 import { matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
 
 type Phase = "orient" | "predict" | "attempt" | "diagnose" | "explain" | "transfer" | "complete" | "blocked";
@@ -46,6 +46,77 @@ function loadFixtures(): Fixture[] {
 	const parsed = JSON.parse(readFileSync(path, "utf8")) as FixtureFile;
 	if (!parsed.fixtures.length) throw new Error("No learning-machine fixtures found");
 	return parsed.fixtures;
+}
+
+function field(body: string, name: string): string {
+	const match = body.match(new RegExp(`^- ${name}:\\s*(.*(?:\\n  .*)*)`, "m"));
+	return match?.[1]?.replace(/\n  /g, " ").trim() ?? "";
+}
+
+function phaseForStage(stage: string): Phase {
+	if (stage === "implementing") return "attempt";
+	if (stage === "reviewing" || stage === "verifying") return "diagnose";
+	if (stage === "explaining") return "explain";
+	if (stage === "applying") return "transfer";
+	return "orient";
+}
+
+function countEvidence(body: string, status: string): EvidenceCount {
+	const table = body.split("### Acceptance criteria and evidence")[1] ?? "";
+	const rows = table.split("\n").filter((line) => /\|\s*(pending|explained by tutor|verified by tutor|demonstrated by learner)\s*\|/i.test(line));
+	const relevant = rows.filter((line) => line.toLowerCase().includes(`| ${status.toLowerCase()} |`));
+	return { done: relevant.length, total: rows.length };
+}
+
+function loadCurrentCheckpoint(): Fixture {
+	const path = join(process.cwd(), "learning-checkpoints.md");
+	const source = readFileSync(path, "utf8");
+	const sections = source.split(/^## /m).slice(1);
+	const section = sections.find((candidate) => !/^.*^- Stage: `complete`/ms.test(candidate));
+	if (!section) throw new Error("No incomplete checkpoint found");
+	const [title, ...bodyParts] = section.split("\n");
+	const body = bodyParts.join("\n");
+	const stage = field(body, "Stage").replaceAll("`", "") || "queued";
+	const language = field(body, "Language") || "Unknown";
+	const target = field(body, "Learning target") || "Continue the current learning checkpoint.";
+	const nextAction = field(body, "Next learner action") || "Choose the next bounded learner action.";
+	const behavior = countEvidence(body, "verified by tutor");
+	const demonstrated = countEvidence(body, "demonstrated by learner");
+	const total = Math.max(1, behavior.total);
+	return {
+		id: title.trim(),
+		checkpoint: title.trim(),
+		language,
+		phase: phaseForStage(stage),
+		helpLevel: 1,
+		goal: target,
+		challenge: field(body, "Outcome") || "Work on the current checkpoint without skipping its acceptance criteria.",
+		nextAction,
+		evidence: {
+			behavior: { done: Math.min(total, behavior.done), total },
+			explanation: { done: stage === "explaining" || stage === "applying" ? 1 : 0, total: 1 },
+			transfer: { done: demonstrated.done, total: Math.max(1, demonstrated.total) },
+		},
+		observations: [{ time: "now", kind: "STATE", status: "prompt", text: `Loaded from ${path}` }],
+	};
+}
+
+function wrapText(text: string, width: number): string[] {
+	const words = text.split(/\s+/).filter(Boolean);
+	const lines: string[] = [];
+	let current = "";
+	for (const word of words) {
+		if (!current) {
+			current = word;
+		} else if (current.length + 1 + word.length <= width) {
+			current += ` ${word}`;
+		} else {
+			lines.push(current);
+			current = word;
+		}
+	}
+	if (current) lines.push(current);
+	return lines.length ? lines : [""];
 }
 
 function bar(value: EvidenceCount, width: number): string {
@@ -124,13 +195,7 @@ class Cockpit {
 		const lines: string[] = ["", this.renderHeader(width), this.theme.fg("border", "─".repeat(width))];
 		const narrow = width < 90;
 		if (narrow) {
-			lines.push(...this.panel("ACTIVE CHALLENGE", [
-				this.theme.fg("accent", f.goal),
-				"",
-				f.challenge,
-				"",
-				this.theme.fg("warning", `Next: ${f.nextAction}`),
-			], width));
+			lines.push(...this.panel("ACTIVE CHALLENGE", this.challengeLines(f, width), width));
 			lines.push(...this.panel("EVIDENCE", this.evidenceLines(f), width));
 			lines.push(...this.panel("OBSERVATIONS", this.observationLines(f), width));
 		} else {
@@ -139,13 +204,7 @@ class Cockpit {
 			const rightWidth = Math.max(28, Math.floor((width - gap * 2) * 0.25));
 			const centerWidth = Math.max(32, width - leftWidth - rightWidth - gap * 2);
 			const left = this.panel("CURRICULUM", this.curriculumLines(f), leftWidth);
-			const center = this.panel("ACTIVE CHALLENGE", [
-				this.theme.fg("accent", f.goal),
-				"",
-				f.challenge,
-				"",
-				this.theme.fg("warning", `Next: ${f.nextAction}`),
-			], centerWidth);
+			const center = this.panel("ACTIVE CHALLENGE", this.challengeLines(f, centerWidth), centerWidth);
 			const right = this.panel("EVIDENCE", this.evidenceLines(f), rightWidth);
 			const rows = Math.max(left.length, center.length, right.length);
 			for (let i = 0; i < rows; i++) {
@@ -165,6 +224,17 @@ class Cockpit {
 		this.cachedWidth = width;
 		this.cachedLines = lines.map((line) => truncateToWidth(line, width));
 		return this.cachedLines;
+	}
+
+	private challengeLines(f: Fixture, width: number): string[] {
+		const inner = Math.max(10, width - 4);
+		return [
+			...wrapText(f.goal, inner).map((line) => this.theme.fg("accent", line)),
+			"",
+			...wrapText(f.challenge, inner),
+			"",
+			...wrapText(`Next: ${f.nextAction}`, inner).map((line) => this.theme.fg("warning", line)),
+		];
 	}
 
 	private curriculumLines(f: Fixture): string[] {
@@ -218,19 +288,42 @@ class Cockpit {
 }
 
 export default function learningMachine(pi: ExtensionAPI) {
+	const openCockpit = async (ctx: ExtensionCommandContext, fixtures: Fixture[]) => {
+		if (ctx.mode !== "tui") {
+			ctx.ui.notify("This Learning Machine command requires interactive TUI mode", "error");
+			return;
+		}
+		try {
+			await ctx.ui.custom<void>((tui, theme, _keybindings, done) => new Cockpit(fixtures, theme, done, tui));
+		} catch (error) {
+			ctx.ui.notify(`Learning Machine failed: ${error instanceof Error ? error.message : String(error)}`, "error");
+		}
+	};
+
 	pi.registerCommand("learn", {
-		description: "Open the Learning Machine cockpit",
+		description: "Open the Learning Machine cockpit for the current checkpoint",
+		handler: async (_args, ctx) => openCockpit(ctx, [loadCurrentCheckpoint()]),
+	});
+
+	pi.registerCommand("learn-demo", {
+		description: "Open the Learning Machine visual fixture demo",
+		handler: async (_args, ctx) => openCockpit(ctx, loadFixtures()),
+	});
+
+	pi.registerCommand("progress", {
+		description: "Show current learning progress",
+		handler: async (_args, ctx) => openCockpit(ctx, [loadCurrentCheckpoint()]),
+	});
+
+	pi.registerCommand("hint", {
+		description: "Show a small hint for the current checkpoint",
 		handler: async (_args, ctx) => {
-			if (ctx.mode !== "tui") {
-				ctx.ui.notify("/learn requires interactive TUI mode", "error");
-				return;
-			}
-			try {
-				const fixtures = loadFixtures();
-				await ctx.ui.custom<void>((tui, theme, _keybindings, done) => new Cockpit(fixtures, theme, done, tui));
-			} catch (error) {
-				ctx.ui.notify(`Learning Machine failed: ${error instanceof Error ? error.message : String(error)}`, "error");
-			}
-		},
+		try {
+			const checkpoint = loadCurrentCheckpoint();
+			ctx.ui.notify(`Hint: focus on this next action — ${checkpoint.nextAction}`, "info");
+		} catch (error) {
+			ctx.ui.notify(`Learning Machine failed: ${error instanceof Error ? error.message : String(error)}`, "error");
+		}
+	},
 	});
 }
