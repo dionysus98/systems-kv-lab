@@ -17,7 +17,7 @@
       "id": "diagnose",
       "checkpoint": "03-c-fixed-store",
       "language": "C",
-      "phase": "diagnose",
+      "phase": "observe",
       "helpLevel": 2,
       "goal": "Preserve the store invariant while replacing existing keys.",
       "challenge": "Interpret the first compiler or test observation before changing code.",

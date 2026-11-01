@@ -2,8 +2,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ExtensionAPI, ExtensionCommandContext, Theme } from "@earendil-works/pi-coding-agent";
 import { matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
+import { dispatch, initialState, type LearningCommand, type LearningState } from "../../learning-machine/engine.ts";
 
-type Phase = "orient" | "predict" | "attempt" | "diagnose" | "explain" | "transfer" | "complete" | "blocked";
+type Phase = "orient" | "predict" | "attempt" | "observe" | "explain" | "transfer" | "complete" | "blocked";
 type Status = "success" | "warning" | "error" | "prompt";
 
 interface EvidenceCount {
@@ -39,7 +40,25 @@ interface FixtureFile {
 	fixtures: Fixture[];
 }
 
-const phases: Phase[] = ["orient", "predict", "attempt", "diagnose", "explain", "transfer", "complete"];
+const phases: Phase[] = ["orient", "predict", "attempt", "observe", "explain", "transfer", "complete"];
+let engineState: LearningState = initialState();
+
+function syncEngine(fixture: Fixture): void {
+	const phase = fixture.phase === "blocked" ? "orient" : fixture.phase;
+	engineState = {
+		...engineState,
+		checkpoint: fixture.checkpoint,
+		language: fixture.language,
+		phase: phase as LearningState["phase"],
+		goal: fixture.goal,
+		nextAction: fixture.nextAction,
+		helpLevel: fixture.helpLevel,
+	};
+}
+
+function applyCommand(command: LearningCommand): void {
+	dispatch(engineState, command);
+}
 
 function loadFixtures(): Fixture[] {
 	const path = join(process.cwd(), "design", "learning-machine", "fixtures.json");
@@ -162,6 +181,7 @@ class Cockpit {
 		private readonly theme: Theme,
 		private readonly close: () => void,
 		private readonly tui: { requestRender: () => void },
+		private readonly onCommand: (command: LearningCommand) => void,
 	) {}
 
 	private get fixture(): Fixture {
@@ -280,6 +300,7 @@ class Cockpit {
 			return;
 		}
 		if (data.toLowerCase() === "h") {
+			this.onCommand({ type: "request_hint" });
 			this.fixture.helpLevel = Math.min(4, this.fixture.helpLevel + 1);
 			this.invalidate();
 			this.tui.requestRender();
@@ -312,7 +333,8 @@ export default function learningMachine(pi: ExtensionAPI) {
 			return;
 		}
 		try {
-			await ctx.ui.custom<void>((tui, theme, _keybindings, done) => new Cockpit(fixtures, theme, done, tui));
+			syncEngine(fixtures[0]);
+			await ctx.ui.custom<void>((tui, theme, _keybindings, done) => new Cockpit(fixtures, theme, done, tui, applyCommand));
 		} catch (error) {
 			ctx.ui.notify(`Learning Machine failed: ${error instanceof Error ? error.message : String(error)}`, "error");
 		}
@@ -346,7 +368,8 @@ export default function learningMachine(pi: ExtensionAPI) {
 		handler: async (_args, ctx) => {
 		try {
 			const checkpoint = loadCurrentCheckpoint();
-			ctx.ui.notify(`Hint: focus on this next action — ${checkpoint.nextAction}`, "info");
+			applyCommand({ type: "request_hint" });
+			ctx.ui.notify(`Hint level ${engineState.helpLevel}: focus on this next action — ${checkpoint.nextAction}`, "info");
 		} catch (error) {
 			ctx.ui.notify(`Learning Machine failed: ${error instanceof Error ? error.message : String(error)}`, "error");
 		}
@@ -368,10 +391,16 @@ export default function learningMachine(pi: ExtensionAPI) {
 			ctx.ui.notify("No response recorded.", "info");
 			return;
 		}
+		const text = response.trim();
+		applyCommand(kind === "prediction"
+			? { type: "submit_prediction", text }
+			: kind === "explanation"
+				? { type: "submit_explanation", text }
+				: { type: "record_transfer", text });
 		pi.appendEntry("learning-machine-response", {
 			checkpoint: loadCurrentCheckpoint().checkpoint,
 			kind,
-			text: response.trim(),
+			text,
 			createdAt: new Date().toISOString(),
 		});
 		ctx.ui.notify(`${kind[0].toUpperCase()}${kind.slice(1)} recorded.`, "success");
