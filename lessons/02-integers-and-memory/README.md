@@ -26,6 +26,6 @@ cc -Wall -Wextra -Wpedantic lessons/02-integers-and-memory/c/main.c -o build/mem
 ```
 
 An address observed in one execution is not a promise about a later execution.
-We will compare this experiment in Rust and Zig, then inspect the actual bytes
-that represent the integer. Neither byte inspection nor the other language
-checkpoints has been completed yet.
+Compare this experiment in Rust and Zig, then inspect the actual bytes that
+represent the integer. The tutor prepares missing language exercises at their
+checkpoints; record personal progress in the checkpoint file and journal.

@@ -9,12 +9,13 @@ should write the implementation and practice new syntax.
 Before resuming a lesson, designing an exercise, or reviewing learner code:
 
 1. Read `.agents/skills/systems-programming-tutor/SKILL.md` for the teaching method.
-2. Read `learning-checkpoints.md` for the current stage and next action, and
+2. Read `learner-profile.md` for this learner's background and goals. Read
+   `learning-checkpoints.md` for the current stage and next action, and
    `session-doc.md`, if present, for detailed lesson evidence.
 3. Inspect the relevant exercise and learner edits before giving guidance.
 
-The learner is an experienced programmer, new to C, Rust, Zig, and systems
-programming.
+Use `learner-profile.md` to calibrate teaching. An unset profile means background
+is unknown; establish it without inheriting another learner's progress.
 
 Use meaningful implementation checkpoints that advance the store. Explain new
 syntax where useful and give targeted hints; leave the substantive code to the
@@ -32,10 +33,15 @@ such as nREPL port files.
 ## Project conventions
 
 - `README.md` describes the project and roadmap.
+- `docs/new-learner.md` explains how to export a clean starter without resetting
+  this workspace. `starter/` contains reusable baselines, never learner evidence.
+- `learner-profile.md` stores this learner's background, goals, and preferences;
+  preserve it when resetting the journal.
 - `lessons/` holds exercises; `session-doc.md` is a resettable lesson journal
   containing attempts, predictions, explanations, results, and pending work.
-  Store durable learner context, preferences, and teaching rules in this file
-  or the tutor skill. They must survive deletion of the journal.
+  Store durable learner context and preferences in `learner-profile.md`, and
+  reusable teaching rules in this file or the tutor skill. They must survive
+  deletion of the journal.
 - `learning-checkpoints.md` tracks ordered checkpoints, completion criteria,
   evidence, and the next learner action. Follow the tutor skill's progression
   rules; a missing journal alone does not reset checkpoint progress.

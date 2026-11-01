@@ -7,17 +7,36 @@ This is a teaching repository, not a race to finish a database. Each feature is
 small enough to expose what the computer and operating system are doing, then
 compares how the three languages express and constrain that work.
 
+## Start your own journey
+
+This checkout can contain another learner's progress. Create a clean workspace
+with Python 3.9 or later:
+
+```sh
+python3 scripts/start-learning.py ../my-systems-kv-lab
+```
+
+Open the new directory and follow [the new-learner guide](docs/new-learner.md).
+The exporter preserves this workspace and gives you starter exercises, a blank
+profile, and fresh progress records. No Git history or remote is copied.
+
+The tutor's goal is independent low-level programming: build and explain working
+features, diagnose failures, and transfer ideas to new problems. Computer science
+concepts such as invariants, complexity, and state machines appear when they help
+you reason about the store. The course grows with the learner; later roadmap
+items are not all prewritten exercises.
+
 ## Learning loop
 
 For each feature:
 
 1. Build a plain-language mental model.
-2. Predict observable behavior.
+2. Predict behavior when it tests a new memory or systems model.
 3. Implement and inspect it in C.
 4. Implement and inspect it in Rust.
 5. Implement and inspect it in Zig.
 6. Compare memory, ownership, cleanup, errors, and safety guarantees.
-7. Record evidence and questions in `session-doc.md`.
+7. Record checkpoint evidence and revisit concepts through small extensions.
 
 The three programs share a behavioral specification; they are not required to
 be line-for-line translations.
@@ -44,8 +63,12 @@ be line-for-line translations.
 - `notes/language-comparison.md` is a factual cross-language reference built
   from observed examples.
 - `session-doc.md` is the learning and teaching journal.
+- `learning-checkpoints.md` records stages, evidence, and the next action.
+- `learner-profile.md` records the current learner's background and goals.
+- `starter/` and `scripts/start-learning.py` provide the clean starting path.
 - `.agents/skills/systems-programming-tutor/` preserves the teaching method for
   future sessions.
 
-Start with `lessons/01-build-and-run/README.md`. Do not worry if every command
-and file extension is unfamiliar; lesson 1 assumes exactly that.
+In your fresh workspace, start with `lessons/01-build-and-run/README.md`.
+Do not worry if every command and file extension is unfamiliar; lesson 1
+assumes exactly that.
