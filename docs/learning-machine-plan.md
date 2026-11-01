@@ -36,6 +36,12 @@ still incomplete.
 
 ## Architecture
 
+The first shared implementation is `learning-machine/engine.ts`. It is a pure
+TypeScript state machine with no UI, tool, model, or filesystem dependencies.
+`learning-machine/protocol.json` defines the adapter-facing command and event
+vocabulary. Pi and Joyride must render and invoke this contract rather than
+inventing separate lesson semantics.
+
 ```text
                    +--------------------+
                    | Pi runtime / model |

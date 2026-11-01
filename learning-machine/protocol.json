@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "systems-kv-lab/learning-machine/protocol",
+  "title": "Learning Machine command and event protocol",
+  "description": "Interface-neutral messages exchanged by Pi, Joyride, and future clients.",
+  "definitions": {
+    "Phase": {
+      "enum": ["orient", "predict", "attempt", "observe", "explain", "transfer", "complete"]
+    },
+    "Command": {
+      "oneOf": [
+        {"type": "object", "required": ["type"], "properties": {"type": {"const": "advance"}}},
+        {"type": "object", "required": ["type", "text"], "properties": {"type": {"const": "submit_prediction"}, "text": {"type": "string"}}},
+        {"type": "object", "required": ["type", "observation"], "properties": {"type": {"const": "record_observation"}, "observation": {"type": "object"}}},
+        {"type": "object", "required": ["type", "text"], "properties": {"type": {"const": "submit_explanation"}, "text": {"type": "string"}}},
+        {"type": "object", "required": ["type", "text"], "properties": {"type": {"const": "record_transfer"}, "text": {"type": "string"}}},
+        {"type": "object", "required": ["type"], "properties": {"type": {"const": "request_hint"}}}
+      ]
+    },
+    "Event": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {"type": {"type": "string"}}
+    }
+  }
+}
