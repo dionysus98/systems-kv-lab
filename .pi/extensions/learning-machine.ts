@@ -288,6 +288,24 @@ class Cockpit {
 }
 
 export default function learningMachine(pi: ExtensionAPI) {
+	pi.on("before_agent_start", (event) => {
+		try {
+			const checkpoint = loadCurrentCheckpoint();
+			event.systemPromptOptions.sections.learning_machine = [
+				"Learning Machine mode is active for this project.",
+				`Current checkpoint: ${checkpoint.checkpoint} (${checkpoint.language})`,
+				`Phase: ${checkpoint.phase}`,
+				`Learning target: ${checkpoint.goal}`,
+				`Next learner action: ${checkpoint.nextAction}`,
+				"Preserve learner agency: do not implement the substantive exercise unless explicitly asked for a worked solution.",
+				"Prefer a goal, prediction, bounded attempt, observation, explanation, and small transfer variation.",
+				"Distinguish passing behavior from learner explanation and independent transfer.",
+			].join("\\n");
+		} catch {
+			delete event.systemPromptOptions.sections.learning_machine;
+		}
+	});
+
 	const openCockpit = async (ctx: ExtensionCommandContext, fixtures: Fixture[]) => {
 		if (ctx.mode !== "tui") {
 			ctx.ui.notify("This Learning Machine command requires interactive TUI mode", "error");
