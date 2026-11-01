@@ -318,9 +318,17 @@ export default function learningMachine(pi: ExtensionAPI) {
 		}
 	};
 
+	const openCurrent = async (ctx: ExtensionCommandContext) => {
+		try {
+			return await openCockpit(ctx, [loadCurrentCheckpoint()]);
+		} catch (error) {
+			ctx.ui.notify(`Learning Machine failed: ${error instanceof Error ? error.message : String(error)}`, "error");
+		}
+	};
+
 	pi.registerCommand("learn", {
 		description: "Open the Learning Machine cockpit for the current checkpoint",
-		handler: async (_args, ctx) => openCockpit(ctx, [loadCurrentCheckpoint()]),
+		handler: async (_args, ctx) => openCurrent(ctx),
 	});
 
 	pi.registerCommand("learn-demo", {
@@ -330,7 +338,7 @@ export default function learningMachine(pi: ExtensionAPI) {
 
 	pi.registerCommand("progress", {
 		description: "Show current learning progress",
-		handler: async (_args, ctx) => openCockpit(ctx, [loadCurrentCheckpoint()]),
+		handler: async (_args, ctx) => openCurrent(ctx),
 	});
 
 	pi.registerCommand("hint", {
