@@ -204,6 +204,33 @@ def read_record(root):
     return parse_checkpoints((root / "learning-checkpoints.md").read_text(encoding="utf-8"))
 
 
+def render_chat(checkpoints):
+    """Produce a read-only Markdown report the tutor can show in its reply."""
+    completed = sum(item["stage"] == "complete" for item in checkpoints)
+    lines = [f"Recorded checkpoints: {completed} / {len(checkpoints)} complete.", "", "```mermaid", "flowchart TD"]
+    for index, item in enumerate(checkpoints):
+        # Keep record text out of Mermaid syntax; node IDs are generated locally.
+        language = re.sub(r"[^\w .+-]", " ", plain(item["fields"].get("language", "Unspecified")))
+        lines.append(f'    step{index}["{index + 1}. {language}: {item["stage"]}"]')
+        if index:
+            lines.append(f"    step{index - 1} --> step{index}")
+    lines.extend(["```", "", "Evidence recorded:"])
+    for item in checkpoints:
+        counts = Counter(row["status"] for row in item["criteria"])
+        evidence = ", ".join(f"{counts[status]} {status}" for status in STATUSES if counts[status])
+        # HTML escaping prevents record text becoming markup in rendered Markdown.
+        lines.append(f'- {label(item["id"])}: {evidence or "criteria not recorded yet"}.')
+    current = current_checkpoint(checkpoints)
+    if current:
+        fields = current["fields"]
+        action = fields.get("next learner action", fields.get("next action", "No next action recorded."))
+        lines.extend(["", "Next action: " + label(action)])
+    else:
+        lines.extend(["", "All recorded checkpoints complete; plan the next feature with the tutor."])
+    lines.extend(["", "Current checkpoint record only; not a mastery score or full learning history."])
+    return "\n".join(lines)
+
+
 def serve(root, port):
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -233,7 +260,9 @@ def serve(root, port):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--serve", action="store_true", help="Serve only the progress view on localhost; refresh to update")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--serve", action="store_true", help="Serve only the progress view on localhost; refresh to update")
+    mode.add_argument("--chat", action="store_true", help="Print a Markdown/Mermaid report for the tutor's reply; writes no files")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
     try:
@@ -241,7 +270,9 @@ def main():
         if not 0 <= args.port <= 65535:
             raise ValueError("Port must be between 0 and 65535.")
         checkpoints = read_record(root)
-        if args.serve:
+        if args.chat:
+            print(render_chat(checkpoints))
+        elif args.serve:
             serve(root, args.port)
         else:
             output = root / "build/progress.html"

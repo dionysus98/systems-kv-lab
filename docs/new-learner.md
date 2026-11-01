@@ -65,7 +65,13 @@ losing work, export another fresh directory.
 
 ## Visual progress
 
-Run `python3 scripts/progress.py --serve` and open `http://127.0.0.1:8765`.
+Ask the tutor "Show my progress" for an in-conversation diagram, evidence
+counts, and next action. The tutor reads the latest record using
+`python3 scripts/progress.py --chat` and shows the result in its reply. No
+browser or additional integration is required; clients without Mermaid
+rendering get readable text. Ask again whenever you want an updated snapshot.
+
+For an optional browser view, run `python3 scripts/progress.py --serve` and open `http://127.0.0.1:8765`.
 Refresh after the tutor updates your checkpoint record. The page distinguishes
 pending work, tutor explanations, tutor-verified checks, and learner demonstrations;
 it shows the next learner action and lets you filter checkpoints by language.

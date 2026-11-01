@@ -43,7 +43,12 @@ be line-for-line translations.
 
 ## See your progress
 
-Run the local viewer, then open `http://127.0.0.1:8765`:
+Ask the tutor **"Show my progress"** to see a diagram, evidence counts, and your
+next action directly in the conversation. The tutor reads the current record
+using `python3 scripts/progress.py --chat`; you do not need to run a server.
+Clients without diagram rendering get readable text instead.
+
+For the optional browser view, run the local viewer, then open `http://127.0.0.1:8765`:
 
 ```sh
 python3 scripts/progress.py --serve

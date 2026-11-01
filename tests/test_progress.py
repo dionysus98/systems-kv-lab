@@ -102,6 +102,28 @@ class ProgressTests(unittest.TestCase):
     def test_supported_python_syntax(self):
         ast.parse((ROOT / "scripts/progress.py").read_text(), feature_version=(3, 9))
 
+    def test_chat_report_preserves_evidence_categories_and_next_action(self):
+        checkpoints = PROGRESS.parse_checkpoints(RECORD)
+        report = PROGRESS.render_chat(checkpoints)
+        for status in PROGRESS.STATUSES:
+            self.assertIn("1 " + status, report)
+        self.assertIn("run the capacity checks, then inspect the result.", report)
+        self.assertIn('step0["1. C: verifying"]', report)
+        self.assertIn("step0 --> step1", report)
+        self.assertIn("0 / 2 complete", report)
+
+    def test_chat_mode_writes_no_files(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            record = root / "learning-checkpoints.md"
+            record.write_text(RECORD)
+            result = subprocess.run([sys.executable, str(ROOT / "scripts/progress.py"),
+                                     "--root", str(root), "--chat"],
+                                    capture_output=True, text=True, check=True)
+            self.assertIn("```mermaid", result.stdout)
+            self.assertEqual(list(root.iterdir()), [record])
+            self.assertEqual(record.read_text(), RECORD)
+
 
 if __name__ == "__main__":
     unittest.main()

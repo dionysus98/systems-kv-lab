@@ -125,7 +125,15 @@ requests may change the plan. Keep hints and explanations adaptive within it.
 
 ### Visual progress tool
 
-Use `python3 scripts/progress.py` to create `build/progress.html`, or let the
+When the learner asks to see progress, default to showing it in the conversation:
+run `python3 scripts/progress.py --chat` and present its Mermaid diagram,
+evidence counts, and next action in the reply. Tool output alone is not the
+user-facing report. Use readable text when the client cannot render Mermaid.
+Do not require a browser, server, MCP installation, or learner-run command for
+an in-chat progress request. This is a snapshot; reread the record on each request.
+
+For an optional browser view, use `python3 scripts/progress.py` to create
+`build/progress.html`, or let the
 learner run `python3 scripts/progress.py --serve` for a local page that reads
 the latest checkpoint record on refresh. The tool is a read-only view of the
 records, not a grader. After updating checkpoints, regenerate an existing
