@@ -3,9 +3,10 @@
             ["path" :as path]
             [clojure.string :as str]))
 
-(def phases [:orient :predict :attempt :observe :explain :transfer])
+(def phases [:orient :predict :attempt :observe :explain :transfer :complete])
 (def phase-labels {:orient "Orient" :predict "Predict" :attempt "Attempt"
-                   :observe "Observe" :explain "Explain" :transfer "Transfer"})
+                   :observe "Observe" :explain "Explain" :transfer "Transfer"
+                   :complete "Complete"})
 (defonce !state (atom {:phase :orient
                        :prediction ""
                        :events []
@@ -93,7 +94,9 @@
                          "<textarea id='explanation' placeholder='A Store* permits ...'></textarea><br>"
                          (button "record-explanation" "Record explanation → Transfer"))
            :transfer (str "<p>Apply the idea in a small variation before advancing.</p>"
-                          (button "open-implementation" "Return to code") (button "finish" "Mark variation attempted")))
+                          (button "open-implementation" "Return to code") (button "finish" "Mark variation attempted"))
+           :complete (str "<p><strong>Checkpoint complete.</strong> You demonstrated behavior, explanation, and transfer.</p>"
+                          (button "open-spec" "Review the specification")))
          "</section><aside class='card'><h2>Evidence timeline</h2>"
          (if (seq events)
            (str/join "" (map #(str "<div class='event'><strong>" (escape-html (:kind %)) "</strong><br>"
@@ -134,7 +137,8 @@
                                 (do (record! "EXPLANATION" text)
                                     (next-phase! :transfer))))
       "run-build" (run-build!)
-      "finish" (record! "TRANSFER" "Learner marked the variation attempted.")
+      "finish" (do (record! "TRANSFER" "Learner marked the variation attempted.")
+                    (next-phase! :complete))
       nil)))
 
 (defn dispose! []
